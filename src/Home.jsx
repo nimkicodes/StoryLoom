@@ -2,7 +2,7 @@ import './index.css';
 
 const Home = () => {
     return (
-        <div className="flex flex-col text-[#57311a] h-screen">
+        <div className="flex flex-col text-sl-title h-screen">
             {/* Title bar */}
             <div className="bg-white drop-shadow-xs p-2 flex items-center gap-2">
                 {/* logo, TEST SMALL SCREENS WHEN DOING THIS */}
@@ -14,34 +14,34 @@ const Home = () => {
                 </div>
 
                 {/* navigation */}
-                <div className="flex gap-10 justify-end pr-10 w-full font-medium text-xl">
+                <div className="flex gap-10 justify-end pr-10 w-full font-medium text-xl text-sl-text">
                     {/* TODO: add icons */}
                     <div className="">
-                        <a>Home</a>
+                        <a href="./">Home</a>
                     </div>
                     <div className="">
-                        <a>Browse</a>
+                        <a href="./Browse">Browse</a>
                     </div>
                     <div className="">
-                        <a>Create</a>
+                        <a href="./Create">Create</a>
                     </div>
                     <div className="">
-                        <a>Profile</a>
+                        <a href="./Profile">Profile</a>
                     </div>
                 </div>
             </div>
 
             {/* Home page content */}
-            <div className="h-full flex flex-col justify-center justify-items-center bg-[#f9f4eb]">
+            <div className="h-full flex flex-col justify-center justify-items-center bg-sl-bgr">
                 <div className="flex justify-center p-30 pb-10">
                     <p className="max-w-200 text-center font-serif text-7xl font-bold">Weave Your Stories Through Lived Experience</p>
                 </div>
                 <div className="flex justify-center p-10">
-                    <p className="text-[#9b876b] max-w-200 text-center text-2xl font-medium">Create, share and discover beautifully crafted digital zines. A sanctuary for artists, writers and storytellers.</p>
+                    <p className="text-sl-text max-w-200 text-center text-2xl font-medium">Create, share and discover beautifully crafted digital zines. A sanctuary for artists, writers and storytellers.</p>
                 </div>
                 <div className="flex justify-center gap-10 p-10">
-                    <button className="rounded-full bg-[#d17a4a] drop-shadow-sm text-[#f9f4eb] pl-6 pr-6 pt-3 pb-3">Create Your Zine</button>
-                    <button className="rounded-full bg-[#f9f4eb] drop-shadow-sm text-[#d17a4a] pl-6 pr-6 pt-3 pb-3 border-solid border-2 border-[#d17a4a]">Explore Zines</button>
+                    <button className="rounded-full bg-sl-orange drop-shadow-sm text-sl-background pl-6 pr-6 pt-3 pb-3">Create Your Zine</button>
+                    <button className="rounded-full bg-sl-background drop-shadow-sm text-sl-orange pl-6 pr-6 pt-3 pb-3 border-solid border-2 border-sl-orange">Explore Zines</button>
                 </div>
             </div>
         </div>

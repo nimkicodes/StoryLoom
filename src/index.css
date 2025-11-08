@@ -1,1 +1,8 @@
 @import 'tailwindcss';
+
+@theme {
+    --color-sl-title: #57311a;
+    --color-sl-background: #f9f4eb;
+    --color-sl-orange: #d17a4a;
+    --color-sl-text: #9b876b;
+}

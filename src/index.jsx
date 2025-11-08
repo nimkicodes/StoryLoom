@@ -1,5 +1,6 @@
 import Home from './Home';
 import List from './List';
+import Error from './Error';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import ReactDOM from 'react-dom/client';
 import React from 'react';
@@ -10,7 +11,7 @@ root.render(
         <Routes>
             <Route exact path="/" element={<Home />} />
             <Route exact path="/list" element={<List />} />
-            <Route path="*" element={<Home />} />
+            <Route path="*" element={<Error />} />
         </Routes>
     </BrowserRouter>
 );
