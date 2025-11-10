@@ -6,7 +6,7 @@ To get StoryLoom up and running on your local machine, follow these steps:
 
 1.  **Unzip the project:**
     ```bash
-    unzip StoryLoom
+    git clone -b checkpoint-1 git@github.com:nimkicodes/StoryLoom.git
     ```
 2.  **Navigate into the project directory:**
     ```bash
