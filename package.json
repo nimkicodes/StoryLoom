@@ -6,11 +6,22 @@
     "scripts": {
         "build": "rsbuild build",
         "dev": "rsbuild dev --open",
+        "start:server": "node server.js",
         "preview": "rsbuild preview"
     },
     "dependencies": {
+        "@google-cloud/storage": "^7.17.3",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.3",
+        "express": "^5.1.0",
+        "immutability-helper": "^3.1.1",
+        "mongodb": "^7.0.0",
+        "multer": "^2.0.2",
         "react": "^19.2.0",
+        "react-dnd": "^16.0.1",
+        "react-dnd-html5-backend": "^16.0.1",
         "react-dom": "^19.2.0",
+        "react-dropzone": "^14.3.8",
         "react-router-dom": "^7.9.5"
     },
     "devDependencies": {

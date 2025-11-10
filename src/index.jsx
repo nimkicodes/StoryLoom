@@ -3,6 +3,7 @@ import Browse from './Browse';
 import Create from './Create';
 import Profile from './Profile';
 import Error from './Error';
+import ZineDetail from './ZineDetail';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import ReactDOM from 'react-dom/client';
 import React from 'react';
@@ -15,6 +16,7 @@ root.render(
             <Route exact path="/browse" element={<Browse />} />
             <Route exact path="/create" element={<Create />} />
             <Route exact path="/profile" element={<Profile />} />
+            <Route path="/zine/:id/:slug" element={<ZineDetail />} />
             <Route path="*" element={<Error />} />
         </Routes>
     </BrowserRouter>

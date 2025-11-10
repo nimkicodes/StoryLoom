@@ -1,9 +1,12 @@
 import './index.css';
+import logoYarn from '../resource/logo_yarn.png'; // Import the image directly
 
 export const nav = (
     <div className="flex items-center gap-2 p-2 w-screen text-sl-title bg-white drop-shadow-xs">
-        {/* logo, TEST SMALL SCREENS WHEN DOING THIS */}
-        <div className="h-15 w-15 bg-red-300"></div>
+        {/* logo */}
+        <div className="h-15 w-20">
+            <img src={logoYarn} alt="StoryLoom Logo" className="h-full w-full object-contain" />
+        </div>
 
         {/* title */}
         <div className="">
