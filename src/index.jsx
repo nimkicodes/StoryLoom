@@ -2,6 +2,7 @@ import Home from './Home';
 import Browse from './Browse';
 import Create from './Create';
 import Profile from './Profile';
+import Reader from './Reader';
 import Error from './Error';
 import ZineDetail from './ZineDetail';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
@@ -16,6 +17,7 @@ root.render(
             <Route exact path="/browse" element={<Browse />} />
             <Route exact path="/create" element={<Create />} />
             <Route exact path="/profile" element={<Profile />} />
+            <Route exact path="/reader" element={<Reader />} />
             <Route path="/zine/:id/:slug" element={<ZineDetail />} />
             <Route path="*" element={<Error />} />
         </Routes>
