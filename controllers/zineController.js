@@ -14,11 +14,37 @@ export const getAllZines = async (req, res) => {
   console.log('[Controller] Entered getAllZines function.');
   try {
     const db = getDB();
-    const zines = await db.collection('zines').find({}).sort({ createdAt: -1 }).toArray();
+    const snapshot = await db.collection('zines').orderBy('createdAt', 'desc').get();
+
+    const zines = [];
+    snapshot.forEach(doc => {
+      zines.push({ _id: doc.id, ...doc.data() });
+    });
+
     res.status(200).json(zines);
   } catch (error) {
     console.error('[Controller] Error fetching all zines:', error);
     res.status(500).send('Failed to fetch zines.');
+  }
+};
+
+export const getZineById = async (req, res) => {
+  console.log('[Controller] Entered getZineById function.');
+  try {
+    const db = getDB();
+    const { id } = req.params;
+
+    const doc = await db.collection('zines').doc(id).get();
+
+    if (!doc.exists) {
+      return res.status(404).send('Zine not found.');
+    }
+
+    const zine = { _id: doc.id, ...doc.data() };
+    res.status(200).json(zine);
+  } catch (error) {
+    console.error('[Controller] Error fetching zine by ID:', error);
+    res.status(500).send('Failed to fetch zine.');
   }
 };
 
@@ -56,15 +82,17 @@ export const processAndUploadImages = async (req, res) => {
       tags,
       pages: imageUrls,
       createdAt: new Date(),
+      userId: req.user.uid, // Add user ID from auth token
+      userEmail: req.user.email // Optional: Add user email
     };
-    
+
     const db = getDB();
-    const result = await db.collection('zines').insertOne(zine);
-    console.log(`[Controller] Successfully inserted zine into MongoDB with ID: ${result.insertedId}`);
+    const result = await db.collection('zines').add(zine);
+    console.log(`[Controller] Successfully inserted zine into Firestore with ID: ${result.id}`);
 
     const responsePayload = {
       message: 'Zine created successfully!',
-      zineId: result.insertedId,
+      zineId: result.id,
       title: title,
       slug: slugify(title),
       pages: imageUrls,

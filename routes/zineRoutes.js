@@ -1,8 +1,8 @@
 import express from 'express';
 import multer from 'multer';
-import { processAndUploadImages, getAllZines } from '../controllers/zineController.js';
+import { processAndUploadImages, getAllZines, getZineById } from '../controllers/zineController.js';
 
-const router = express.Router(); 
+const router = express.Router();
 
 // Configure Multer for memory storage
 const storage = multer.memoryStorage();
@@ -10,7 +10,10 @@ const upload = multer({ storage: storage });
 
 // ... (multer config) ...
 
-router.post('/upload', upload.array('images', 20), processAndUploadImages);
+import { verifyToken } from '../middleware/authMiddleware.js';
+
+router.post('/upload', verifyToken, upload.array('images', 20), processAndUploadImages);
 router.get('/', getAllZines);
+router.get('/:id', getZineById);
 
 export default router;

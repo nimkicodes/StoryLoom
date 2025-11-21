@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { auth } from './firebase';
 import { useDropzone } from 'react-dropzone';
 import { useDrag, useDrop } from 'react-dnd';
 import { Link } from 'react-router-dom';
@@ -11,7 +12,7 @@ const style = {
   textAlign: 'center',
   cursor: 'pointer',
   width: '100%',
-  height: '100%',
+  minHeight: '100%',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
@@ -201,7 +202,7 @@ const DraggableImage = ({ image, index, moveImage, removeImage }) => {
       <div style={thumbInner}>
         {image.isHeic ? (
           <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0', color: '#666', fontSize: '0.8em', textAlign: 'center' }}>
-            HEIC File<br/>(Preview N/A)
+            HEIC File<br />(Preview N/A)
           </div>
         ) : (
           <img src={image.preview} style={img} alt={`preview-${image.path}`} />
@@ -222,7 +223,12 @@ const SuccessModal = ({ zine, onClose }) => {
           <div style={checkmarkIconStyle}>✓</div>
         </div>
         <p style={modalTextStyle}>
-          Zine Upload Successful! View your zine: {zine.title}
+          Zine Upload Successful!
+        </p>
+        <p style={{ marginTop: '10px' }}>
+          <Link to={`/zine/${zine.zineId}/${zine.slug}`} style={modalLinkStyle}>
+            View your zine: {zine.title}
+          </Link>
         </p>
       </div>
     </div>
@@ -233,6 +239,7 @@ export const ImageUpload = ({ title, author, tags, onUploadSuccess }) => {
   const [files, setFiles] = useState([]);
   const [isHovered, setIsHovered] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("You can reorder the images by dragging them in between if needed.");
   const [uploadStatus, setUploadStatus] = useState('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -248,6 +255,7 @@ export const ImageUpload = ({ title, author, tags, onUploadSuccess }) => {
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
+      setNotificationMessage("You can reorder the images by dragging them in between if needed.");
       setShowNotification(true);
     }
     const newFiles = acceptedFiles.map(file => Object.assign(file, {
@@ -286,6 +294,14 @@ export const ImageUpload = ({ title, author, tags, onUploadSuccess }) => {
       return;
     }
 
+    if (!title || !author || !tags) {
+      setNotificationMessage("Please fill out Title, Author, and Tags.");
+      setShowNotification(true);
+      // Hide notification after 5 seconds
+      setTimeout(() => setShowNotification(false), 5000);
+      return;
+    }
+
     setUploadStatus('uploading');
     setUploadProgress(0);
     setServerProcessing(false);
@@ -298,49 +314,66 @@ export const ImageUpload = ({ title, author, tags, onUploadSuccess }) => {
     formData.append('author', author);
     formData.append('tags', tags);
 
-    const xhr = new XMLHttpRequest();
 
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = Math.round((event.loaded / event.total) * 100);
-        setUploadProgress(percentComplete < 85 ? percentComplete : 85);
-        if (percentComplete >= 85) {
-          setServerProcessing(true);
+
+    const uploadFile = async () => {
+      try {
+        const token = await auth.currentUser?.getIdToken();
+
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percentComplete < 85 ? percentComplete : 85);
+            if (percentComplete >= 85) {
+              setServerProcessing(true);
+            }
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          setServerProcessing(false);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const response = JSON.parse(xhr.responseText);
+            setNewZine(response);
+            setShowSuccessModal(true);
+            setUploadProgress(100);
+            setUploadStatus('success');
+            setFiles([]);
+            if (onUploadSuccess) {
+              onUploadSuccess();
+            }
+            setTimeout(() => setUploadStatus('idle'), 500);
+          } else {
+            setUploadStatus('error');
+            alert('Upload failed. The server responded with an error.');
+            setUploadProgress(0);
+            setTimeout(() => setUploadStatus('idle'), 500);
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          setServerProcessing(false);
+          setUploadStatus('error');
+          alert('Upload failed. Please check your network connection.');
+          setUploadProgress(0);
+          setTimeout(() => setUploadStatus('idle'), 500);
+        });
+
+        xhr.open('POST', 'http://localhost:3001/api/zines/upload');
+        if (token) {
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         }
+        xhr.send(formData);
+      } catch (error) {
+        console.error("Error getting token:", error);
+        alert("Authentication error. Please try logging in again.");
+        setUploadStatus('idle');
       }
-    });
+    };
 
-    xhr.addEventListener('load', () => {
-      setServerProcessing(false);
-      if (xhr.status >= 200 && xhr.status < 300) {
-        const response = JSON.parse(xhr.responseText);
-        setNewZine(response);
-        setShowSuccessModal(true);
-        setUploadProgress(100);
-        setUploadStatus('success');
-        setFiles([]);
-        if (onUploadSuccess) {
-          onUploadSuccess();
-        }
-        setTimeout(() => setUploadStatus('idle'), 500);
-      } else {
-        setUploadStatus('error');
-        alert('Upload failed. The server responded with an error.');
-        setUploadProgress(0);
-        setTimeout(() => setUploadStatus('idle'), 500);
-      }
-    });
-
-    xhr.addEventListener('error', () => {
-      setServerProcessing(false);
-      setUploadStatus('error');
-      alert('Upload failed. Please check your network connection.');
-      setUploadProgress(0);
-      setTimeout(() => setUploadStatus('idle'), 500);
-    });
-
-    xhr.open('POST', 'http://localhost:3001/api/zines/upload');
-    xhr.send(formData);
+    uploadFile();
   };
 
   const isUploading = uploadStatus === 'uploading';
@@ -351,11 +384,11 @@ export const ImageUpload = ({ title, author, tags, onUploadSuccess }) => {
       <div {...getRootProps({ style: { ...style, cursor: isUploading ? 'not-allowed' : 'pointer' } })}>
         {showNotification && (
           <div style={notificationBubbleStyle}>
-            You can reorder the images by dragging them in between if needed.
+            {notificationMessage}
           </div>
         )}
         <input {...getInputProps()} />
-        
+
         <p>Drag and drop some images here, or click to select images</p>
         <aside style={previewStyle}>
           {files.map((file, i) => (
@@ -374,30 +407,32 @@ export const ImageUpload = ({ title, author, tags, onUploadSuccess }) => {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleUpload();
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          disabled={isUploading}
-          style={{
-            backgroundColor: isUploading ? '#ccc' : (isHovered ? 'var(--color-sl-orange)' : 'var(--color-sl-orange)'),
-            filter: isHovered && !isUploading ? 'brightness(1.1)' : 'brightness(1)',
-            color: 'white',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            border: 'none',
-            cursor: isUploading ? 'not-allowed' : 'pointer',
-            marginTop: '20px',
-            transform: isHovered && !isUploading ? 'scale(1.05)' : 'scale(1)',
-            transition: 'all 0.2s ease-in-out',
-          }}
-        >
-          {isUploading ? `Uploading...` : 'Upload Zine Pages'}
-        </button>
+        {files.length > 0 && title && author && tags && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleUpload();
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            disabled={isUploading}
+            style={{
+              backgroundColor: isUploading ? '#ccc' : (isHovered ? 'var(--color-sl-orange)' : 'var(--color-sl-orange)'),
+              filter: isHovered && !isUploading ? 'brightness(1.1)' : 'brightness(1)',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              border: 'none',
+              cursor: isUploading ? 'not-allowed' : 'pointer',
+              marginTop: '20px',
+              transform: isHovered && !isUploading ? 'scale(1.05)' : 'scale(1)',
+              transition: 'all 0.2s ease-in-out',
+            }}
+          >
+            {isUploading ? `Uploading...` : 'Upload Zine Pages'}
+          </button>
+        )}
       </div>
     </>
   );

@@ -1,14 +1,25 @@
-import React, { useState } from 'react';
-import ImageUpload from './ImageUpload'; 
-import { DndProvider } from 'react-dnd'; 
-import { HTML5Backend } from 'react-dnd-html5-backend'; 
+import React, { useState, useEffect } from 'react';
+import { useAuth } from './contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import ImageUpload from './ImageUpload';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import './index.css';
-import { nav } from './Globals';
+import { NavBar } from './Globals';
 
 const Create = () => {
     const [title, setTitle] = useState('');
     const [author, setAuthor] = useState('');
     const [tags, setTags] = useState('');
+
+    const { currentUser } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!currentUser) {
+            navigate('/login');
+        }
+    }, [currentUser, navigate]);
 
     const handleUploadSuccess = () => {
         setTitle('');
@@ -17,39 +28,39 @@ const Create = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-sl-background">
-            {nav}
+        <div className="flex flex-col text-sl-title min-h-screen pb-10">
+            <NavBar />
             <h1 className="pt-5 pb-2 font-serif font-bold text-sl-title text-4xl text-center">Upload A New Zine</h1>
 
             <div className="w-7/8 mx-auto">
                 <hr className="border-sl-text"></hr>
-                <div className="mt-5 flex gap-5 text-sl-text justify-center">
+                <div className="mt-5 flex flex-col lg:flex-row gap-5 text-sl-text justify-center items-stretch">
                     {/* left box */}
-                    <div className="flex flex-row flex-wrap rounded-[1em] w-100 h-100 p-5 border-solid border-3">
-                        <div className="w-3/4 mx-auto p-5">
-                            <span className="inline-block">Title</span>
+                    <div className="flex flex-row flex-wrap rounded-[1em] w-full lg:w-1/3 p-5 border-solid border-3">
+                        <div className="w-full p-2">
+                            <span className="inline-block font-bold">Title</span>
                             <input
-                                className="rounded-[5px] w-full mt-2 bg-white px-3"
+                                className="rounded-[5px] w-full mt-2 bg-white px-3 py-2 border border-gray-300"
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Enter zine title"
                             />
                         </div>
-                        <div className="w-3/4 mx-auto p-5">
-                            <span className="inline-block">Author</span>
+                        <div className="w-full p-2">
+                            <span className="inline-block font-bold">Author</span>
                             <input
-                                className="rounded-[5px] w-full mt-2 bg-white px-3"
+                                className="rounded-[5px] w-full mt-2 bg-white px-3 py-2 border border-gray-300"
                                 type="text"
                                 value={author}
                                 onChange={(e) => setAuthor(e.target.value)}
                                 placeholder="Enter author name"
                             />
                         </div>
-                        <div className="w-3/4 mx-auto p-5">
-                            <span className="inline-block">Tags</span>
+                        <div className="w-full p-2">
+                            <span className="inline-block font-bold">Tags</span>
                             <input
-                                className="rounded-[5px] w-full mt-2 bg-white px-3"
+                                className="rounded-[5px] w-full mt-2 bg-white px-3 py-2 border border-gray-300"
                                 type="text"
                                 value={tags}
                                 onChange={(e) => setTags(e.target.value)}
@@ -59,7 +70,7 @@ const Create = () => {
                     </div>
 
                     {/* right box */}
-                    <div className="rounded-[1em] w-200 h-100">
+                    <div className="rounded-[1em] w-full lg:w-2/3 min-h-[500px]">
                         <DndProvider backend={HTML5Backend}>
                             <ImageUpload
                                 title={title}
