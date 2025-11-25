@@ -6,7 +6,7 @@ To get StoryLoom up and running on your local machine, follow these steps:
 
 1.  **Unzip the project:**
     ```bash
-    git clone -b checkpoint-1 git@github.com:nimkicodes/StoryLoom.git
+    unzip StoryLoom
     ```
 2.  **Navigate into the project directory:**
     ```bash
@@ -16,8 +16,12 @@ To get StoryLoom up and running on your local machine, follow these steps:
     ```bash
     npm install
     ```
-4.  **Start the development server:**
+4.  **Start the server first before the dev:**
+    ```bash
+    npm run start:server
+    ```
+5.  **Start npm dev:**
     ```bash
     npm run dev
     ```
-    This command will typically start both the frontend and backend servers. Follow any instructions in your terminal to access the application in your web browser (usually `http://localhost:3000`).
+The project should be up and running in your browser (preferably the most updated version of Google Chrome) at localhost**
