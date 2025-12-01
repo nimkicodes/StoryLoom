@@ -38,6 +38,21 @@ const ZineDetail = () => {
         fetchZine();
     }, [id]);
 
+    const [dimensions, setDimensions] = useState({ width: 550, height: 650 });
+
+    useEffect(() => {
+        const handleResize = () => {
+            const width = Math.min(window.innerWidth * 0.9, 550);
+            const height = Math.min(window.innerHeight * 0.8, 650);
+            // Maintain aspect ratio roughly if needed, or just fit to screen
+            setDimensions({ width, height });
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const bookRef = React.useRef();
     const [isSoundEnabled, setIsSoundEnabled] = useState(true);
 
@@ -74,26 +89,26 @@ const ZineDetail = () => {
     return (
         <div className="flex flex-col h-screen bg-sl-background overflow-hidden">
             <NavBar />
-            <div className="flex-grow w-7/8 mx-auto text-center pb-5 relative">
-                <h1 className="pt-5 pb-2 font-serif font-bold text-sl-title text-4xl">{zine.title}</h1>
+            <div className="flex-grow w-full md:w-7/8 mx-auto text-center pb-5 relative px-4 md:px-0">
+                <h1 className="pt-5 pb-2 font-serif font-bold text-sl-title text-2xl md:text-4xl">{zine.title}</h1>
                 <hr className="border-sl-text"></hr>
-                <p className="mt-5">By {zine.author}</p>
+                <p className="mt-2 md:mt-5 text-sm md:text-base">By {zine.author}</p>
 
                 {/* Sound Toggle Button */}
                 <button
                     onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-                    className="absolute top-10 right-0 p-2 text-sl-title hover:text-sl-orange transition-colors"
+                    className="absolute top-4 right-4 md:top-10 md:right-0 p-2 text-sl-title hover:text-sl-orange transition-colors"
                     title={isSoundEnabled ? "Mute sound" : "Unmute sound"}
                 >
-                    {isSoundEnabled ? <FaVolumeUp size={24} /> : <FaVolumeMute size={24} />}
+                    {isSoundEnabled ? <FaVolumeUp size={20} /> : <FaVolumeMute size={20} />}
                 </button>
 
-                <div className="flex flex-col justify-center justify-items-center items-center mt-5">
+                <div className="flex flex-col justify-center justify-items-center items-center mt-5 h-[calc(100vh-200px)]">
                     <HTMLFlipBook
                         className="bg-transparent"
                         flippingTime={500}
-                        width={550}
-                        height={650}
+                        width={dimensions.width}
+                        height={dimensions.height}
                         showCover={true}
                         ref={bookRef}
                         onFlip={playFlipSound}

@@ -46,7 +46,7 @@ const Browse = () => {
                 {error && <p className="text-center mt-10 text-red-500">Error: {error}</p>}
 
                 {!loading && !error && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
                         {zines.map((zine) => (
                             <Link
                                 key={zine._id}

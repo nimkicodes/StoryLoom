@@ -8,16 +8,16 @@ const Home = () => {
             <NavBar />
 
             {/* Home page content */}
-            <div className="h-full flex flex-col justify-center justify-items-center bg-sl-background">
-                <div className="flex justify-center p-30 pb-10">
-                    <p className="max-w-200 text-center font-serif text-7xl font-bold">Weave Your Stories Through Lived Experience</p>
+            <div className="h-full flex flex-col justify-center justify-items-center bg-sl-background px-4">
+                <div className="flex justify-center pt-20 pb-10 md:p-30 md:pb-10">
+                    <p className="max-w-full md:max-w-200 text-center font-serif text-4xl md:text-7xl font-bold">Weave Your Stories Through Lived Experience</p>
                 </div>
-                <div className="flex justify-center p-10">
-                    <p className="text-sl-text max-w-200 text-center text-2xl font-medium">Create, share and discover beautifully crafted digital zines. A sanctuary for artists, writers and storytellers.</p>
+                <div className="flex justify-center p-4 md:p-10">
+                    <p className="text-sl-text max-w-full md:max-w-200 text-center text-lg md:text-2xl font-medium">Create, share and discover beautifully crafted digital zines. A sanctuary for artists, writers and storytellers.</p>
                 </div>
-                <div className="flex justify-center gap-10 p-10">
-                    <Link to="/create" className="rounded-full bg-sl-orange drop-shadow-sm text-sl-background px-6 py-3">Create Your Zine</Link>
-                    <Link to="/browse" className="rounded-full bg-sl-background drop-shadow-sm text-sl-orange px-6 py-3">Explore Zines</Link>
+                <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-10 p-4 md:p-10 items-center">
+                    <Link to="/create" className="w-full md:w-auto text-center rounded-full bg-sl-orange drop-shadow-sm text-sl-background px-6 py-3">Create Your Zine</Link>
+                    <Link to="/browse" className="w-full md:w-auto text-center rounded-full bg-sl-background drop-shadow-sm text-sl-orange px-6 py-3">Explore Zines</Link>
                 </div>
             </div>
         </div>

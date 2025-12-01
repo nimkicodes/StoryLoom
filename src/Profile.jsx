@@ -71,26 +71,26 @@ const Profile = () => {
 
             <div className="flex-grow w-full max-w-6xl mx-auto px-4 py-8">
                 {/* Profile Header Card */}
-                <div className="bg-white rounded-3xl shadow-sm p-8 mb-12 flex items-center justify-between relative">
-                    <div className="flex items-center gap-8">
+                <div className="bg-white rounded-3xl shadow-sm p-6 md:p-8 mb-8 md:mb-12 flex flex-col md:flex-row items-center justify-between relative gap-6 md:gap-0">
+                    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 text-center md:text-left">
                         {/* Avatar */}
-                        <div className="w-24 h-24 rounded-full bg-sl-orange flex items-center justify-center text-white text-4xl font-bold shadow-inner">
+                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-sl-orange flex items-center justify-center text-white text-3xl md:text-4xl font-bold shadow-inner">
                             {avatarLetter}
                         </div>
 
                         {/* User Info */}
-                        <div className="flex flex-col">
-                            <h1 className="text-4xl font-bold text-sl-title mb-1">{displayName}</h1>
-                            <p className="text-gray-500 text-lg mb-4">{currentUser.email}</p>
+                        <div className="flex flex-col items-center md:items-start">
+                            <h1 className="text-2xl md:text-4xl font-bold text-sl-title mb-1">{displayName}</h1>
+                            <p className="text-gray-500 text-base md:text-lg mb-4">{currentUser.email}</p>
 
                             <div className="flex gap-8 text-sl-title">
                                 <div className="flex flex-col">
-                                    <span className="text-2xl font-bold">{zines.length}</span>
-                                    <span className="text-sm text-gray-500">Zines Created</span>
+                                    <span className="text-xl md:text-2xl font-bold">{zines.length}</span>
+                                    <span className="text-xs md:text-sm text-gray-500">Zines Created</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-2xl font-bold">0</span>
-                                    <span className="text-sm text-gray-500">Bookmarks</span>
+                                    <span className="text-xl md:text-2xl font-bold">0</span>
+                                    <span className="text-xs md:text-sm text-gray-500">Bookmarks</span>
                                 </div>
                             </div>
                         </div>
@@ -99,7 +99,7 @@ const Profile = () => {
                     {/* Sign Out Button */}
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 px-6 py-2 border border-sl-orange text-sl-orange rounded-lg hover:bg-sl-orange hover:text-white transition-colors font-medium absolute top-8 right-8"
+                        className="flex items-center gap-2 px-6 py-2 border border-sl-orange text-sl-orange rounded-lg hover:bg-sl-orange hover:text-white transition-colors font-medium md:absolute md:top-8 md:right-8 w-full md:w-auto justify-center"
                     >
                         <HiLogout className="text-xl" />
                         <span>Sign Out</span>
@@ -120,7 +120,7 @@ const Profile = () => {
                             <Link to="/create" className="text-sl-orange font-bold hover:underline">Create your first zine!</Link>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
                             {zines.map((zine) => (
                                 <Link
                                     key={zine._id}

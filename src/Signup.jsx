@@ -34,8 +34,8 @@ export default function Signup() {
   return (
     <div className="flex flex-col text-sl-title h-screen bg-sl-background">
       <NavBar />
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+      <div className="flex flex-col items-center justify-center h-full px-4">
+        <div className="w-full max-w-md p-6 md:p-8 bg-white rounded-lg shadow-md">
           <h2 className="text-3xl font-bold text-center mb-6">Sign Up</h2>
           {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
