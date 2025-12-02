@@ -12,6 +12,8 @@ import ReactDOM from 'react-dom/client';
 import React from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 
+import PrivateRoute from './PrivateRoute';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <BrowserRouter>
@@ -19,8 +21,10 @@ root.render(
             <Routes>
                 <Route exact path="/" element={<Home />} />
                 <Route exact path="/browse" element={<Browse />} />
-                <Route exact path="/create" element={<Create />} />
-                <Route exact path="/profile" element={<Profile />} />
+                <Route element={<PrivateRoute />}>
+                    <Route exact path="/create" element={<Create />} />
+                    <Route exact path="/profile" element={<Profile />} />
+                </Route>
                 <Route exact path="/reader" element={<Reader />} />
                 <Route exact path="/login" element={<Login />} />
                 <Route exact path="/signup" element={<Signup />} />

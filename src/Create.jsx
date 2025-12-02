@@ -15,12 +15,6 @@ const Create = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!currentUser) {
-            navigate('/login');
-        }
-    }, [currentUser, navigate]);
-
     const handleUploadSuccess = () => {
         setTitle('');
         setAuthor('');

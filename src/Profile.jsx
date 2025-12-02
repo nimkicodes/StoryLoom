@@ -49,10 +49,7 @@ const Profile = () => {
         }
     }
 
-    if (!currentUser) {
-        navigate('/login');
-        return null;
-    }
+
 
     const slugify = (text) => {
         return text.toString().toLowerCase()
