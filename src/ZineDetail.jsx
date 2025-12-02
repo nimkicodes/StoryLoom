@@ -70,6 +70,11 @@ const ZineDetail = () => {
             navigate('/login');
             return;
         }
+
+        // Optimistic update
+        const previousState = isBookmarked;
+        setIsBookmarked(!previousState);
+
         try {
             const token = await currentUser.getIdToken();
             const response = await fetch('/api/bookmarks', {
@@ -80,11 +85,21 @@ const ZineDetail = () => {
                 },
                 body: JSON.stringify({ zineId: id })
             });
-            if (response.ok) {
+
+            if (!response.ok) {
+                // Revert on server error
+                setIsBookmarked(previousState);
+                console.error("Failed to toggle bookmark");
+            } else {
+                // Optional: Sync with server response if needed, but we trust optimistic update for speed
                 const data = await response.json();
-                setIsBookmarked(data.bookmarked);
+                if (data.bookmarked !== !previousState) {
+                    setIsBookmarked(data.bookmarked);
+                }
             }
         } catch (error) {
+            // Revert on network error
+            setIsBookmarked(previousState);
             console.error("Error toggling bookmark:", error);
         }
     };
@@ -181,7 +196,7 @@ const ZineDetail = () => {
                 {/* Sound Toggle Button */}
                 <button
                     onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-                    className="absolute top-4 right-4 md:top-10 md:right-0 p-2 text-sl-title hover:text-sl-orange transition-colors"
+                    className="absolute top-4 right-4 md:top-10 md:right-0 p-2 text-sl-title hover:text-sl-orange transition-colors z-50"
                     title={isSoundEnabled ? "Mute sound" : "Unmute sound"}
                 >
                     {isSoundEnabled ? <FaVolumeUp size={20} /> : <FaVolumeMute size={20} />}
@@ -190,14 +205,14 @@ const ZineDetail = () => {
                 {/* Bookmark Button */}
                 <button
                     onClick={handleBookmark}
-                    className="absolute top-4 left-4 md:top-10 md:left-0 p-2 text-sl-title hover:text-sl-orange transition-colors"
+                    className="absolute top-4 left-4 md:top-10 md:left-0 p-2 text-sl-title hover:text-sl-orange transition-colors z-50"
                     title={isBookmarked ? "Remove bookmark" : "Bookmark this zine"}
                 >
                     {isBookmarked ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
                 </button>
 
                 <div ref={headerRef}>
-                    <div className="pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">
+                    <div className="pt-16 md:pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">
                         <h1 className="font-serif font-bold text-sl-title text-2xl md:text-4xl">{zine.title}</h1>
                         <span className="text-xs md:text-base text-gray-600">by {zine.author}</span>
                     </div>
