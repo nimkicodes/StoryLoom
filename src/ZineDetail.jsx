@@ -196,7 +196,7 @@ const ZineDetail = () => {
                 {/* Sound Toggle Button */}
                 <button
                     onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-                    className="absolute top-4 right-4 md:top-10 md:right-0 p-2 text-sl-title hover:text-sl-orange transition-colors z-50"
+                    className="absolute top-4 right-4 md:top-10 md:right-0 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
                     title={isSoundEnabled ? "Mute sound" : "Unmute sound"}
                 >
                     {isSoundEnabled ? <FaVolumeUp size={20} /> : <FaVolumeMute size={20} />}
@@ -205,7 +205,7 @@ const ZineDetail = () => {
                 {/* Bookmark Button */}
                 <button
                     onClick={handleBookmark}
-                    className="absolute top-4 left-4 md:top-10 md:left-0 p-2 text-sl-title hover:text-sl-orange transition-colors z-50"
+                    className="absolute top-4 left-4 md:top-10 md:left-0 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
                     title={isBookmarked ? "Remove bookmark" : "Bookmark this zine"}
                 >
                     {isBookmarked ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}

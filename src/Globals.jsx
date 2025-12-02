@@ -33,7 +33,7 @@ export const NavBar = () => {
     };
 
     return (
-        <div className="relative w-full bg-white drop-shadow-sm z-50">
+        <div className="relative w-full bg-white drop-shadow-sm z-[100]">
             <div className="flex items-center justify-between px-4 md:px-8 py-4">
                 {/* logo */}
                 <Link to="/" className="flex items-center gap-2 md:gap-4" onClick={closeMenu}>
