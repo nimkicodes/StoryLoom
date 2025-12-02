@@ -190,7 +190,7 @@ const ZineDetail = () => {
     if (!zine) return <div className="text-center mt-10">Zine not found</div>;
 
     return (
-        <div className="flex flex-col h-screen bg-sl-background overflow-hidden">
+        <div className="flex flex-col h-dvh overflow-y-auto md:h-screen md:overflow-hidden bg-sl-background">
             <NavBar />
             <div className="flex-grow w-full md:w-7/8 mx-auto text-center pb-5 relative px-4 md:px-0 flex flex-col">
                 {/* Sound Toggle Button */}
