@@ -3,7 +3,7 @@ import logoYarn from '../resource/logo_yarn.png'; // Import the image directly
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useState } from 'react';
-import { HiHome, HiBookOpen, HiPlusCircle, HiUser, HiMenu, HiX, HiLogin } from 'react-icons/hi';
+import { LuHouse, LuBookOpen, LuCirclePlus, LuUser, LuMenu, LuX, LuLogIn } from 'react-icons/lu';
 
 export const NavBar = () => {
     const { currentUser } = useAuth();
@@ -49,32 +49,32 @@ export const NavBar = () => {
                     onClick={toggleMenu}
                     aria-label="Toggle menu"
                 >
-                    {isMenuOpen ? <HiX /> : <HiMenu />}
+                    {isMenuOpen ? <LuX /> : <LuMenu />}
                 </button>
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-4 font-medium text-lg text-sl-text">
                     <Link to="/" className={getLinkClass('/')}>
-                        <HiHome className="text-xl" />
+                        <LuHouse className="text-xl" />
                         <span>Home</span>
                     </Link>
                     <Link to="/browse" className={getLinkClass('/browse')}>
-                        <HiBookOpen className="text-xl" />
+                        <LuBookOpen className="text-xl" />
                         <span>Browse</span>
                     </Link>
                     <Link to="/create" className={getLinkClass('/create')}>
-                        <HiPlusCircle className="text-xl" />
+                        <LuCirclePlus className="text-xl" />
                         <span>Create</span>
                     </Link>
 
                     {currentUser ? (
                         <Link to="/profile" className={getLinkClass('/profile')}>
-                            <HiUser className="text-xl" />
+                            <LuUser className="text-xl" />
                             <span>Profile</span>
                         </Link>
                     ) : (
                         <Link to="/login" className={getLinkClass('/login')}>
-                            <HiLogin className="text-xl" />
+                            <LuLogIn className="text-xl" />
                             <span>Log In</span>
                         </Link>
                     )}
@@ -85,26 +85,26 @@ export const NavBar = () => {
             {isMenuOpen && (
                 <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg py-4 px-4 flex flex-col gap-2 border-t border-gray-100">
                     <Link to="/" className={getLinkClass('/')} onClick={closeMenu}>
-                        <HiHome className="text-xl" />
+                        <LuHouse className="text-xl" />
                         <span>Home</span>
                     </Link>
                     <Link to="/browse" className={getLinkClass('/browse')} onClick={closeMenu}>
-                        <HiBookOpen className="text-xl" />
+                        <LuBookOpen className="text-xl" />
                         <span>Browse</span>
                     </Link>
                     <Link to="/create" className={getLinkClass('/create')} onClick={closeMenu}>
-                        <HiPlusCircle className="text-xl" />
+                        <LuCirclePlus className="text-xl" />
                         <span>Create</span>
                     </Link>
 
                     {currentUser ? (
                         <Link to="/profile" className={getLinkClass('/profile')} onClick={closeMenu}>
-                            <HiUser className="text-xl" />
+                            <LuUser className="text-xl" />
                             <span>Profile</span>
                         </Link>
                     ) : (
                         <Link to="/login" className={getLinkClass('/login')} onClick={closeMenu}>
-                            <HiLogin className="text-xl" />
+                            <LuLogIn className="text-xl" />
                             <span>Log In</span>
                         </Link>
                     )}
