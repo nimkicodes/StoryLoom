@@ -58,7 +58,7 @@ export default function Login() {
               Log In
             </button>
           </form>
-          <div className="w-100 text-center mt-4">
+          <div className="w-full text-center mt-4">
             Need an account? <Link to="/signup" className="text-sl-orange hover:underline">Sign Up</Link>
           </div>
         </div>

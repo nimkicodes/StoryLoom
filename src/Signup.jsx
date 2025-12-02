@@ -65,7 +65,7 @@ export default function Signup() {
               Sign Up
             </button>
           </form>
-          <div className="w-100 text-center mt-4">
+          <div className="w-full text-center mt-4">
             Already have an account? <Link to="/login" className="text-sl-orange hover:underline">Log In</Link>
           </div>
         </div>
