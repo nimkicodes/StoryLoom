@@ -11,32 +11,43 @@ const Profile = () => {
     const { currentUser, logout } = useAuth();
     const [error, setError] = useState('');
     const [zines, setZines] = useState([]);
+    const [bookmarks, setBookmarks] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchUserZines = async () => {
+        const fetchData = async () => {
             if (!currentUser) return;
 
             try {
-                // Add timestamp to prevent caching
-                const response = await fetch(`/api/zines?_t=${Date.now()}`);
-                if (!response.ok) throw new Error('Failed to fetch zines');
+                // Fetch user zines
+                const zinesResponse = await fetch(`/api/zines?_t=${Date.now()}`);
+                if (zinesResponse.ok) {
+                    const allZines = await zinesResponse.json();
+                    const userZines = allZines.filter(zine => zine.userId === currentUser.uid);
+                    setZines(userZines);
+                }
 
-                const allZines = await response.json();
+                // Fetch bookmarks
+                const token = await currentUser.getIdToken();
+                const bookmarksResponse = await fetch('/api/bookmarks', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (bookmarksResponse.ok) {
+                    const userBookmarks = await bookmarksResponse.json();
+                    setBookmarks(userBookmarks);
+                }
 
-                // Filter zines for the current user. 
-
-                const userZines = allZines.filter(zine => zine.userId === currentUser.uid);
-                setZines(userZines);
             } catch (err) {
-                console.error("Error fetching zines:", err);
+                console.error("Error fetching data:", err);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchUserZines();
+        fetchData();
     }, [currentUser]);
 
     async function handleLogout() {
@@ -88,7 +99,7 @@ const Profile = () => {
                                     <span className="text-xs md:text-sm text-gray-500">Zines Created</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-xl md:text-2xl font-bold">0</span>
+                                    <span className="text-xl md:text-2xl font-bold">{bookmarks.length}</span>
                                     <span className="text-xs md:text-sm text-gray-500">Bookmarks</span>
                                 </div>
                             </div>
@@ -121,6 +132,49 @@ const Profile = () => {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
                             {zines.map((zine) => (
+                                <Link
+                                    key={zine._id}
+                                    to={`/zine/${zine._id}/${slugify(zine.title)}`}
+                                    className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                                >
+                                    <div className="aspect-[3/4] w-full overflow-hidden bg-gray-200 relative">
+                                        {zine.pages && zine.pages[0] ? (
+                                            <img
+                                                src={zine.pages[0]}
+                                                alt={`Cover of ${zine.title}`}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400">No Cover</div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                                            <span className="text-white font-bold">Read Now</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-4">
+                                        <h3 className="font-bold text-lg text-sl-title truncate">{zine.title}</h3>
+                                        <p className="text-sm text-gray-500 truncate">by {zine.author}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Bookmarks Grid */}
+                <div className="w-full mt-12">
+                    <h2 className="text-2xl font-bold text-sl-title mb-6 border-b border-gray-200 pb-2">Your Bookmarks</h2>
+
+                    {loading ? (
+                        <p className="text-center text-gray-500 py-10">Loading your bookmarks...</p>
+                    ) : bookmarks.length === 0 ? (
+                        <div className="text-center py-10">
+                            <p className="text-gray-500 mb-4">You haven't bookmarked any zines yet.</p>
+                            <Link to="/" className="text-sl-orange font-bold hover:underline">Explore zines to bookmark!</Link>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+                            {bookmarks.map((zine) => (
                                 <Link
                                     key={zine._id}
                                     to={`/zine/${zine._id}/${slugify(zine.title)}`}

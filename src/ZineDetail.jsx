@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import { FaVolumeUp, FaVolumeMute, FaBookmark, FaRegBookmark } from 'react-icons/fa';
 import HTMLFlipBook from "react-pageflip";
 import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import './index.css';
@@ -19,6 +21,9 @@ const ZineDetail = () => {
     const [zine, setZine] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isBookmarked, setIsBookmarked] = useState(false);
+    const { currentUser } = useAuth();
+    const navigate = useNavigate();
 
     usePageTitle(zine?.title);
 
@@ -38,8 +43,51 @@ const ZineDetail = () => {
             }
         };
 
+        const checkBookmark = async () => {
+            if (!currentUser) return;
+            try {
+                const token = await currentUser.getIdToken();
+                const response = await fetch(`/api/bookmarks/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setIsBookmarked(data.bookmarked);
+                }
+            } catch (error) {
+                console.error("Error checking bookmark:", error);
+            }
+        };
+
         fetchZine();
-    }, [id]);
+        checkBookmark();
+    }, [id, currentUser]);
+
+    const handleBookmark = async () => {
+        if (!currentUser) {
+            navigate('/login');
+            return;
+        }
+        try {
+            const token = await currentUser.getIdToken();
+            const response = await fetch('/api/bookmarks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ zineId: id })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setIsBookmarked(data.bookmarked);
+            }
+        } catch (error) {
+            console.error("Error toggling bookmark:", error);
+        }
+    };
 
     const [dimensions, setDimensions] = useState({ width: 550, height: 650 });
 
@@ -105,6 +153,26 @@ const ZineDetail = () => {
                 >
                     {isSoundEnabled ? <FaVolumeUp size={20} /> : <FaVolumeMute size={20} />}
                 </button>
+
+                {/* Bookmark Button */}
+                <button
+                    onClick={handleBookmark}
+                    className="absolute top-4 left-4 md:top-10 md:left-0 p-2 text-sl-title hover:text-sl-orange transition-colors"
+                    title={isBookmarked ? "Remove bookmark" : "Bookmark this zine"}
+                >
+                    {isBookmarked ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
+                </button>
+
+                {/* Tags */}
+                {zine.tags && zine.tags.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2 mt-3">
+                        {zine.tags.map((tag, index) => (
+                            <span key={index} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                                #{tag}
+                            </span>
+                        ))}
+                    </div>
+                )}
 
                 <div className="flex flex-col justify-center justify-items-center items-center mt-5 h-[calc(100vh-200px)]">
                     <HTMLFlipBook

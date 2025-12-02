@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import zineRoutes from './routes/zineRoutes.js';
+import bookmarkRoutes from './routes/bookmarkRoutes.js';
 import { connectDB } from './db.js';
 
 const app = express();
@@ -16,6 +17,7 @@ connectDB().then(() => {
   app.use(express.json());
 
   app.use('/api/zines', zineRoutes);
+  app.use('/api/bookmarks', bookmarkRoutes);
 
   app.use((err, req, res, next) => {
     console.error(err.stack);
