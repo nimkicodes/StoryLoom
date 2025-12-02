@@ -15,6 +15,7 @@ const Browse = () => {
     const [filteredTags, setFilteredTags] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+    const suggestionsListRef = React.useRef(null);
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -31,6 +32,26 @@ const Browse = () => {
 
         fetchTags();
     }, []);
+
+    // Scroll active suggestion into view
+    useEffect(() => {
+        if (activeSuggestionIndex >= 0 && suggestionsListRef.current) {
+            const list = suggestionsListRef.current;
+            const element = list.children[activeSuggestionIndex];
+            if (element) {
+                const listTop = list.scrollTop;
+                const listBottom = listTop + list.clientHeight;
+                const elementTop = element.offsetTop;
+                const elementBottom = elementTop + element.offsetHeight;
+
+                if (elementBottom > listBottom) {
+                    list.scrollTop = elementBottom - list.clientHeight;
+                } else if (elementTop < listTop) {
+                    list.scrollTop = elementTop;
+                }
+            }
+        }
+    }, [activeSuggestionIndex]);
 
     useEffect(() => {
         const fetchZines = async () => {
@@ -129,7 +150,10 @@ const Browse = () => {
                         className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-sl-orange"
                     />
                     {showSuggestions && filteredTags.length > 0 && (
-                        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+                        <ul
+                            ref={suggestionsListRef}
+                            className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto"
+                        >
                             {filteredTags.map((tag, index) => (
                                 <li
                                     key={index}
