@@ -14,7 +14,7 @@ export const getAllZines = async (req, res) => {
   console.log('[Controller] Entered getAllZines function.');
   try {
     const db = getDB();
-    let query = db.collection('zines').orderBy('createdAt', 'desc');
+    let query = db.collection('zines').orderBy('createdAt', 'desc').orderBy('__name__', 'desc');
 
     if (req.query.userId) {
       query = query.where('userId', '==', req.query.userId);
@@ -24,13 +24,31 @@ export const getAllZines = async (req, res) => {
       query = query.where('tags', 'array-contains', req.query.tag);
     }
 
+    if (req.query.limit) {
+      const limit = parseInt(req.query.limit);
+      if (!isNaN(limit) && limit > 0) {
+        query = query.limit(limit);
+      }
+    }
+
+    if (req.query.lastCreatedAt && req.query.lastId) {
+      query = query.startAfter(new Date(req.query.lastCreatedAt), req.query.lastId);
+    } else if (req.query.lastCreatedAt) {
+      query = query.startAfter(new Date(req.query.lastCreatedAt));
+    }
+
     const startQuery = Date.now();
     const snapshot = await query.get();
     console.log(`[Firestore] Get All Zines Query: ${Date.now() - startQuery}ms`);
 
     const zines = [];
     snapshot.forEach(doc => {
-      zines.push({ _id: doc.id, ...doc.data() });
+      const data = doc.data();
+      zines.push({
+        _id: doc.id,
+        ...data,
+        createdAt: data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt
+      });
     });
 
     res.status(200).json(zines);
@@ -54,7 +72,12 @@ export const getZineById = async (req, res) => {
       return res.status(404).send('Zine not found.');
     }
 
-    const zine = { _id: doc.id, ...doc.data() };
+    const data = doc.data();
+    const zine = {
+      _id: doc.id,
+      ...data,
+      createdAt: data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt
+    };
     res.status(200).json(zine);
   } catch (error) {
     console.error('[Controller] Error fetching zine by ID:', error);
@@ -141,8 +164,18 @@ export const processAndUploadImages = async (req, res) => {
   }
 };
 
+let tagsCache = null;
+let tagsCacheTime = 0;
+const TAGS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export const getAllTags = async (req, res) => {
   try {
+    const now = Date.now();
+    if (tagsCache && (now - tagsCacheTime < TAGS_CACHE_TTL)) {
+      console.log('[Controller] Returning tags from cache');
+      return res.status(200).json(tagsCache);
+    }
+
     const db = getDB();
     const startTags = Date.now();
     const snapshot = await db.collection('zines').select('tags').get();
@@ -156,7 +189,9 @@ export const getAllTags = async (req, res) => {
       }
     });
 
-    res.status(200).json(Array.from(tags).sort());
+    tagsCache = Array.from(tags).sort();
+    tagsCacheTime = Date.now();
+    res.status(200).json(tagsCache);
   } catch (error) {
     console.error('[Controller] Error fetching tags:', error);
     res.status(500).send('Failed to fetch tags.');
