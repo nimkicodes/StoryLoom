@@ -14,6 +14,7 @@ const Browse = () => {
     const [allTags, setAllTags] = useState([]);
     const [filteredTags, setFilteredTags] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -58,6 +59,7 @@ const Browse = () => {
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setSearchTerm(value);
+        setActiveSuggestionIndex(-1); // Reset active index on input change
         if (value) {
             const filtered = allTags.filter(tag => tag.toLowerCase().includes(value.toLowerCase()));
             setFilteredTags(filtered);
@@ -76,7 +78,25 @@ const Browse = () => {
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-            setSearchQuery(searchTerm); // Trigger search on Enter
+            if (activeSuggestionIndex >= 0 && activeSuggestionIndex < filteredTags.length) {
+                handleTagSelect(filteredTags[activeSuggestionIndex]);
+            } else {
+                setSearchQuery(searchTerm); // Trigger search on Enter
+                setShowSuggestions(false);
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault(); // Prevent cursor moving
+            if (showSuggestions && filteredTags.length > 0) {
+                setActiveSuggestionIndex(prev =>
+                    prev < filteredTags.length - 1 ? prev + 1 : prev
+                );
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (showSuggestions && filteredTags.length > 0) {
+                setActiveSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+            }
+        } else if (e.key === 'Escape') {
             setShowSuggestions(false);
         }
     };
@@ -114,7 +134,8 @@ const Browse = () => {
                                 <li
                                     key={index}
                                     onClick={() => handleTagSelect(tag)}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-left"
+                                    className={`px-4 py-2 cursor-pointer text-left ${index === activeSuggestionIndex ? 'bg-gray-200' : 'hover:bg-gray-100'
+                                        }`}
                                 >
                                     {tag}
                                 </li>
