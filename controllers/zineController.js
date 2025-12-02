@@ -20,6 +20,10 @@ export const getAllZines = async (req, res) => {
       query = query.where('userId', '==', req.query.userId);
     }
 
+    if (req.query.tag) {
+      query = query.where('tags', 'array-contains', req.query.tag);
+    }
+
     const snapshot = await query.get();
 
     const zines = [];
@@ -109,5 +113,25 @@ export const processAndUploadImages = async (req, res) => {
   } catch (error) {
     console.error('[Controller] An error occurred during the GCS upload workflow:', error);
     res.status(500).send('Failed to upload files to cloud storage.');
+  }
+};
+
+export const getAllTags = async (req, res) => {
+  try {
+    const db = getDB();
+    const snapshot = await db.collection('zines').select('tags').get();
+    const tags = new Set();
+
+    snapshot.forEach(doc => {
+      const zineTags = doc.data().tags;
+      if (Array.isArray(zineTags)) {
+        zineTags.forEach(tag => tags.add(tag));
+      }
+    });
+
+    res.status(200).json(Array.from(tags).sort());
+  } catch (error) {
+    console.error('[Controller] Error fetching tags:', error);
+    res.status(500).send('Failed to fetch tags.');
   }
 };

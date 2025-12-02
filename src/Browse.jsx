@@ -9,11 +9,36 @@ const Browse = () => {
     const [zines, setZines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [allTags, setAllTags] = useState([]);
+    const [filteredTags, setFilteredTags] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    useEffect(() => {
+        const fetchTags = async () => {
+            try {
+                const response = await fetch('/api/zines/tags');
+                if (response.ok) {
+                    const data = await response.json();
+                    setAllTags(data);
+                }
+            } catch (error) {
+                console.error("Error fetching tags:", error);
+            }
+        };
+
+        fetchTags();
+    }, []);
 
     useEffect(() => {
         const fetchZines = async () => {
+            setLoading(true);
             try {
-                const response = await fetch('/api/zines');
+                let url = '/api/zines';
+                if (searchTerm) {
+                    url += `?tag=${encodeURIComponent(searchTerm)}`;
+                }
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -26,8 +51,30 @@ const Browse = () => {
             }
         };
 
-        fetchZines();
-    }, []);
+        // Debounce search if typing, but immediate if selected from suggestion (handled separately)
+        const timeoutId = setTimeout(() => {
+            fetchZines();
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
+
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        if (value) {
+            const filtered = allTags.filter(tag => tag.toLowerCase().includes(value.toLowerCase()));
+            setFilteredTags(filtered);
+            setShowSuggestions(true);
+        } else {
+            setShowSuggestions(false);
+        }
+    };
+
+    const handleTagSelect = (tag) => {
+        setSearchTerm(tag);
+        setShowSuggestions(false);
+    };
 
     const slugify = (text) => {
         return text.toString().toLowerCase()
@@ -43,6 +90,32 @@ const Browse = () => {
             <NavBar />
 
             <div className="flex-grow w-full max-w-6xl mx-auto px-4 py-8">
+
+                {/* Search Bar */}
+                <div className="relative max-w-md mx-auto mb-8">
+                    <input
+                        type="text"
+                        placeholder="Search by tag..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        onFocus={() => searchTerm && setShowSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Delay to allow click
+                        className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-sl-orange"
+                    />
+                    {showSuggestions && filteredTags.length > 0 && (
+                        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+                            {filteredTags.map((tag, index) => (
+                                <li
+                                    key={index}
+                                    onClick={() => handleTagSelect(tag)}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-left"
+                                >
+                                    {tag}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
 
                 {loading && <p className="text-center text-gray-500 py-10">Loading zines...</p>}
                 {error && <p className="text-center mt-10 text-red-500">Error: {error}</p>}
