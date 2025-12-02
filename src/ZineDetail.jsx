@@ -92,6 +92,8 @@ const ZineDetail = () => {
     const [dimensions, setDimensions] = useState({ width: 550, height: 650 });
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+    const headerRef = React.useRef(null);
+
     useEffect(() => {
         let timeoutId;
         const handleResize = () => {
@@ -101,9 +103,11 @@ const ZineDetail = () => {
                 setIsMobile(isMobileView);
 
                 let width, height;
-                // Calculate available height: window height - navbar - header - footer - padding
-                // Approx: 100vh - 64px (nav) - 100px (header) - 60px (footer) - 40px (padding) ~= 100vh - 260px
-                const availableHeight = window.innerHeight - 280;
+
+                // Calculate available height dynamically
+                // Window - NavBar (approx 64px) - Padding/Margins (approx 40px) - Header Content Height
+                const headerHeight = headerRef.current ? headerRef.current.offsetHeight : 150; // Fallback 150
+                const availableHeight = window.innerHeight - 110 - headerHeight;
 
                 if (isMobileView) {
                     // Mobile: nearly full width, appropriate height
@@ -125,13 +129,17 @@ const ZineDetail = () => {
             }, 100); // Debounce resize
         };
 
-        handleResize(); // Initial call
+        // Run resize handler when zine data loads (to measure header) and on window resize
+        if (!loading && zine) {
+            handleResize();
+        }
+
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);
             clearTimeout(timeoutId);
         };
-    }, []);
+    }, [loading, zine]);
 
     const bookRef = React.useRef();
     const [isSoundEnabled, setIsSoundEnabled] = useState(true);
@@ -169,13 +177,7 @@ const ZineDetail = () => {
     return (
         <div className="flex flex-col h-screen bg-sl-background overflow-hidden">
             <NavBar />
-            <div className="flex-grow w-full md:w-7/8 mx-auto text-center pb-5 relative px-4 md:px-0">
-                <div className="pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">
-                    <h1 className="font-serif font-bold text-sl-title text-2xl md:text-4xl">{zine.title}</h1>
-                    <span className="text-xs md:text-base text-gray-600">by {zine.author}</span>
-                </div>
-                <hr className="border-sl-text"></hr>
-
+            <div className="flex-grow w-full md:w-7/8 mx-auto text-center pb-5 relative px-4 md:px-0 flex flex-col">
                 {/* Sound Toggle Button */}
                 <button
                     onClick={() => setIsSoundEnabled(!isSoundEnabled)}
@@ -194,18 +196,26 @@ const ZineDetail = () => {
                     {isBookmarked ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
                 </button>
 
-                {/* Tags */}
-                {zine.tags && zine.tags.length > 0 && (
-                    <div className="flex flex-wrap justify-center gap-2 mt-3">
-                        {zine.tags.map((tag, index) => (
-                            <span key={index} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                                {tag}
-                            </span>
-                        ))}
+                <div ref={headerRef}>
+                    <div className="pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">
+                        <h1 className="font-serif font-bold text-sl-title text-2xl md:text-4xl">{zine.title}</h1>
+                        <span className="text-xs md:text-base text-gray-600">by {zine.author}</span>
                     </div>
-                )}
+                    <hr className="border-sl-text"></hr>
 
-                <div className="flex flex-col justify-center justify-items-center items-center mt-5 h-[calc(100vh-200px)]">
+                    {/* Tags */}
+                    {zine.tags && zine.tags.length > 0 && (
+                        <div className="flex flex-wrap justify-center gap-2 mt-3">
+                            {zine.tags.map((tag, index) => (
+                                <span key={index} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex-grow flex flex-col justify-center items-center min-h-0">
                     <HTMLFlipBook
                         key={`${dimensions.width}-${dimensions.height}-${isMobile}`} // Force re-render on resize
                         className="bg-transparent"
@@ -228,9 +238,7 @@ const ZineDetail = () => {
                 </div>
             </div>
 
-            <footer className="w-full py-4 bg-white text-center text-sl-text border-t border-gray-200 mt-auto z-10 relative">
-                <p>Created by Team StoryLoom</p>
-            </footer>
+
         </div>
     );
 };
