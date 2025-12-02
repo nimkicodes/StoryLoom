@@ -20,38 +20,40 @@ const Profile = () => {
             if (!currentUser) return;
 
             try {
-                // Fetch user profile for bookmarks
+                // Fetch user profile
                 const userResponse = await fetch(`/api/users/${currentUser.uid}`);
-                let bookmarkedIds = [];
                 if (userResponse.ok) {
                     const userData = await userResponse.json();
-                    bookmarkedIds = userData.bookmarkedZineIds || [];
-                    // Optimistic update for count
-                    setBookmarks(new Array(bookmarkedIds.length).fill({}));
-                }
 
-                // Fetch user zines
-                const zinesResponse = await fetch(`/api/zines?userId=${currentUser.uid}&_t=${Date.now()}`);
-                if (zinesResponse.ok) {
-                    const userZines = await zinesResponse.json();
-                    setZines(userZines);
-                }
-
-                // Fetch actual bookmark details
-                if (bookmarkedIds.length > 0) {
-                    const bookmarksResponse = await fetch('/api/bookmarks', {
-                        headers: {
-                            'Authorization': `Bearer ${await currentUser.getIdToken()}`
+                    // Handle Created Zines (Denormalized)
+                    if (userData.createdZines && Array.isArray(userData.createdZines)) {
+                        const mappedZines = userData.createdZines.map(z => ({
+                            ...z,
+                            _id: z.zineId,
+                            pages: [z.coverImage] // Map coverImage to pages[0] for UI compatibility
+                        }));
+                        setZines(mappedZines);
+                    } else {
+                        // Fallback to old API if not present (optional, but good for safety)
+                        const zinesResponse = await fetch(`/api/zines?userId=${currentUser.uid}&_t=${Date.now()}`);
+                        if (zinesResponse.ok) {
+                            const userZines = await zinesResponse.json();
+                            setZines(userZines);
                         }
-                    });
-                    if (bookmarksResponse.ok) {
-                        const userBookmarks = await bookmarksResponse.json();
-                        setBookmarks(userBookmarks);
                     }
-                } else {
-                    setBookmarks([]);
-                }
 
+                    // Handle Bookmarks (Denormalized)
+                    if (userData.bookmarkedZines && Array.isArray(userData.bookmarkedZines)) {
+                        const mappedBookmarks = userData.bookmarkedZines.map(b => ({
+                            ...b,
+                            _id: b.zineId,
+                            pages: [b.coverImage] // Map coverImage to pages[0] for UI compatibility
+                        }));
+                        setBookmarks(mappedBookmarks);
+                    } else {
+                        setBookmarks([]);
+                    }
+                }
             } catch (err) {
                 console.error("Error fetching data:", err);
             } finally {

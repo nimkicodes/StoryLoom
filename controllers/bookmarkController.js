@@ -15,30 +15,53 @@ export const toggleBookmark = async (req, res) => {
     const userDoc = await userRef.get();
 
     if (!userDoc.exists) {
-      // Should ideally exist if synced, but handle case
       return res.status(404).send('User profile not found.');
     }
 
     const userData = userDoc.data();
-    const bookmarks = userData.bookmarkedZineIds || [];
-    const isBookmarked = bookmarks.includes(zineId);
+    const bookmarks = userData.bookmarkedZines || [];
+    const isBookmarked = bookmarks.some(z => z.zineId === zineId);
 
     if (isBookmarked) {
       // Remove
+      // For object array, we need to filter because arrayRemove requires exact object match
+      const currentBookmarkedZines = userData.bookmarkedZines || [];
+      const updatedBookmarkedZines = currentBookmarkedZines.filter(z => z.zineId !== zineId);
+
       await userRef.update({
-        bookmarkedZineIds: admin.firestore.FieldValue.arrayRemove(zineId)
+        bookmarkedZines: updatedBookmarkedZines
       });
+
       // Also remove from bookmarks collection (optional, keeping for now as backup/audit)
       const snapshot = await db.collection('bookmarks').where('userId', '==', userId).where('zineId', '==', zineId).get();
       if (!snapshot.empty) {
-        await db.collection('bookmarks').doc(snapshot.docs[0].id).delete();
+        // Delete all matches just in case
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
       }
       res.status(200).json({ bookmarked: false });
     } else {
       // Add
+      // Fetch zine details first
+      const zineDoc = await db.collection('zines').doc(zineId).get();
+      if (!zineDoc.exists) {
+        return res.status(404).send('Zine not found.');
+      }
+      const zineData = zineDoc.data();
+
+      const newBookmark = {
+        zineId: zineId,
+        title: zineData.title || 'Untitled',
+        author: zineData.author || 'Unknown',
+        coverImage: (zineData.pages && zineData.pages[0]) ? zineData.pages[0] : '',
+        addedAt: new Date().toISOString()
+      };
+
       await userRef.update({
-        bookmarkedZineIds: admin.firestore.FieldValue.arrayUnion(zineId)
+        bookmarkedZines: admin.firestore.FieldValue.arrayUnion(newBookmark)
       });
+
       // Also add to bookmarks collection
       await db.collection('bookmarks').add({
         userId,
@@ -63,20 +86,8 @@ export const getBookmarks = async (req, res) => {
       return res.status(200).json([]);
     }
 
-    const zineIds = userDoc.data().bookmarkedZineIds || [];
-
-    if (zineIds.length === 0) {
-      return res.status(200).json([]);
-    }
-
-    const zinePromises = zineIds.map(id => db.collection('zines').doc(id).get());
-    const zineSnapshots = await Promise.all(zinePromises);
-
-    const zines = zineSnapshots
-      .filter(doc => doc.exists)
-      .map(doc => ({ _id: doc.id, ...doc.data() }));
-
-    res.status(200).json(zines);
+    const bookmarks = userDoc.data().bookmarkedZines || [];
+    res.status(200).json(bookmarks);
   } catch (error) {
     console.error('Error fetching bookmarks:', error);
     res.status(500).send('Failed to fetch bookmarks.');
@@ -90,7 +101,7 @@ export const checkBookmarkStatus = async (req, res) => {
     const userId = req.user.uid;
 
     const userDoc = await db.collection('users').doc(userId).get();
-    const isBookmarked = userDoc.exists && (userDoc.data().bookmarkedZineIds || []).includes(zineId);
+    const isBookmarked = userDoc.exists && (userDoc.data().bookmarkedZines || []).some(z => z.zineId === zineId);
 
     res.status(200).json({ bookmarked: isBookmarked });
   } catch (error) {

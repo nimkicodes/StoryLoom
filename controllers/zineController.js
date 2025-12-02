@@ -1,5 +1,5 @@
 import { uploadToGCS } from '../gcs.js';
-import { getDB } from '../db.js';
+import { getDB, admin } from '../db.js';
 
 const slugify = (text) => {
   return text.toString().toLowerCase()
@@ -99,6 +99,21 @@ export const processAndUploadImages = async (req, res) => {
     const db = getDB();
     const result = await db.collection('zines').add(zine);
     console.log(`[Controller] Successfully inserted zine into Firestore with ID: ${result.id}`);
+
+    // Update user's createdZines array
+    const userRef = db.collection('users').doc(req.user.uid);
+    const zineSummary = {
+      zineId: result.id,
+      title: title,
+      author: author,
+      coverImage: imageUrls[0] || '',
+      createdAt: new Date().toISOString()
+    };
+
+    await userRef.update({
+      createdZines: admin.firestore.FieldValue.arrayUnion(zineSummary)
+    });
+    console.log(`[Controller] Updated user ${req.user.uid} createdZines with new zine.`);
 
     const responsePayload = {
       message: 'Zine created successfully!',

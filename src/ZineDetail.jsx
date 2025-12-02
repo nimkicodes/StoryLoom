@@ -46,15 +46,12 @@ const ZineDetail = () => {
         const checkBookmark = async () => {
             if (!currentUser) return;
             try {
-                const token = await currentUser.getIdToken();
-                const response = await fetch(`/api/bookmarks/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const response = await fetch(`/api/users/${currentUser.uid}`);
                 if (response.ok) {
-                    const data = await response.json();
-                    setIsBookmarked(data.bookmarked);
+                    const userData = await response.json();
+                    const bookmarks = userData.bookmarkedZines || [];
+                    const isBookmarked = bookmarks.some(b => b.zineId === id);
+                    setIsBookmarked(isBookmarked);
                 }
             } catch (error) {
                 console.error("Error checking bookmark:", error);
