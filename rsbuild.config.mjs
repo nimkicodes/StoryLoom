@@ -13,4 +13,7 @@ export default defineConfig({
             },
         },
     },
+    html: {
+        favicon: './public/favicon.png',
+    },
 });

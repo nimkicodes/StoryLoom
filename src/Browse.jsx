@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './index.css';
 import { NavBar } from './Globals';
+import usePageTitle from './hooks/usePageTitle';
 
 const Browse = () => {
+    usePageTitle('Browse');
     const [zines, setZines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

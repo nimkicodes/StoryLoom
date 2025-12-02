@@ -4,6 +4,7 @@ import { useDropzone } from 'react-dropzone';
 import { useDrag, useDrop } from 'react-dnd';
 import { Link } from 'react-router-dom';
 import update from 'immutability-helper';
+import usePageTitle from './hooks/usePageTitle';
 
 const style = {
   border: '2px dashed #9b876b',
@@ -236,6 +237,7 @@ const SuccessModal = ({ zine, onClose }) => {
 };
 
 export const ImageUpload = ({ title, author, tags, onUploadSuccess }) => {
+  usePageTitle('Create');
   const [files, setFiles] = useState([]);
   const [isHovered, setIsHovered] = useState(false);
   const [showNotification, setShowNotification] = useState(false);

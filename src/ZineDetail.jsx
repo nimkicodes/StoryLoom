@@ -4,6 +4,7 @@ import HTMLFlipBook from "react-pageflip";
 import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import './index.css';
 import { NavBar } from './Globals';
+import usePageTitle from './hooks/usePageTitle';
 
 const Page = React.forwardRef((props, ref) => {
     return (
@@ -18,6 +19,8 @@ const ZineDetail = () => {
     const [zine, setZine] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    usePageTitle(zine?.title);
 
     useEffect(() => {
         const fetchZine = async () => {

@@ -4,8 +4,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { NavBar } from './Globals';
 import { HiLogout } from 'react-icons/hi';
 import './index.css';
+import usePageTitle from './hooks/usePageTitle';
 
 const Profile = () => {
+    usePageTitle('Profile');
     const { currentUser, logout } = useAuth();
     const [error, setError] = useState('');
     const [zines, setZines] = useState([]);

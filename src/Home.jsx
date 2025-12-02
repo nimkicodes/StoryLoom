@@ -1,8 +1,10 @@
 import './index.css';
 import { NavBar } from './Globals';
 import { Link } from 'react-router-dom';
+import usePageTitle from './hooks/usePageTitle';
 
 const Home = () => {
+    usePageTitle();
     return (
         <div className="flex flex-col text-sl-title h-screen">
             <NavBar />
