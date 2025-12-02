@@ -141,9 +141,11 @@ const ZineDetail = () => {
         <div className="flex flex-col h-screen bg-sl-background overflow-hidden">
             <NavBar />
             <div className="flex-grow w-full md:w-7/8 mx-auto text-center pb-5 relative px-4 md:px-0">
-                <h1 className="pt-5 pb-2 font-serif font-bold text-sl-title text-2xl md:text-4xl">{zine.title}</h1>
+                <div className="pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">
+                    <h1 className="font-serif font-bold text-sl-title text-2xl md:text-4xl">{zine.title}</h1>
+                    <span className="text-xs md:text-base text-gray-600">by {zine.author}</span>
+                </div>
                 <hr className="border-sl-text"></hr>
-                <p className="mt-2 md:mt-5 text-sm md:text-base">By {zine.author}</p>
 
                 {/* Sound Toggle Button */}
                 <button
