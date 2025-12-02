@@ -137,7 +137,7 @@ const Profile = () => {
                                     to={`/zine/${zine._id}/${slugify(zine.title)}`}
                                     className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                                 >
-                                    <div className="aspect-[3/4] w-full overflow-hidden bg-gray-200 relative">
+                                    <div className="aspect-square w-full overflow-hidden bg-gray-200 relative">
                                         {zine.pages && zine.pages[0] ? (
                                             <img
                                                 src={zine.pages[0]}
@@ -180,7 +180,7 @@ const Profile = () => {
                                     to={`/zine/${zine._id}/${slugify(zine.title)}`}
                                     className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                                 >
-                                    <div className="aspect-[3/4] w-full overflow-hidden bg-gray-200 relative">
+                                    <div className="aspect-square w-full overflow-hidden bg-gray-200 relative">
                                         {zine.pages && zine.pages[0] ? (
                                             <img
                                                 src={zine.pages[0]}
