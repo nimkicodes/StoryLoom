@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './index.css';
 import { NavBar } from './Globals';
 import usePageTitle from './hooks/usePageTitle';
@@ -9,13 +9,39 @@ const Browse = () => {
     const [zines, setZines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [searchQuery, setSearchQuery] = useState(''); // New state for the actual search trigger
+    const suggestionsListRef = React.useRef(null);
+    const location = useLocation();
+    const navigate = useNavigate();
+
     const [allTags, setAllTags] = useState([]);
     const [filteredTags, setFilteredTags] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
-    const suggestionsListRef = React.useRef(null);
+
+    // Initialize state from URL to avoid double fetch
+    const params = new URLSearchParams(location.search);
+    const initialTag = params.get('tag') || '';
+
+    const [searchTerm, setSearchTerm] = useState(initialTag);
+    const [searchQuery, setSearchQuery] = useState(initialTag);
+
+    // Sync state with URL changes (e.g. back button)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tagParam = params.get('tag') || '';
+        setSearchTerm(tagParam);
+        setSearchQuery(tagParam);
+    }, [location.search]);
+
+    // Update filtered tags when searchTerm or allTags changes
+    useEffect(() => {
+        if (searchTerm && allTags.length > 0) {
+            const filtered = allTags.filter(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+            setFilteredTags(filtered);
+        } else {
+            setFilteredTags([]);
+        }
+    }, [searchTerm, allTags]);
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -82,19 +108,17 @@ const Browse = () => {
         setSearchTerm(value);
         setActiveSuggestionIndex(-1); // Reset active index on input change
         if (value) {
-            const filtered = allTags.filter(tag => tag.toLowerCase().includes(value.toLowerCase()));
-            setFilteredTags(filtered);
             setShowSuggestions(true);
         } else {
-            setSearchQuery(''); // Trigger search (reset) when empty
             setShowSuggestions(false);
+            navigate('/browse'); // Clear search when empty
         }
     };
 
     const handleTagSelect = (tag) => {
         setSearchTerm(tag);
-        setSearchQuery(tag); // Trigger search
         setShowSuggestions(false);
+        navigate(`?tag=${encodeURIComponent(tag)}`);
     };
 
     const handleKeyDown = (e) => {
@@ -102,8 +126,12 @@ const Browse = () => {
             if (activeSuggestionIndex >= 0 && activeSuggestionIndex < filteredTags.length) {
                 handleTagSelect(filteredTags[activeSuggestionIndex]);
             } else {
-                setSearchQuery(searchTerm); // Trigger search on Enter
                 setShowSuggestions(false);
+                if (searchTerm.trim()) {
+                    navigate(`?tag=${encodeURIComponent(searchTerm.trim())}`);
+                } else {
+                    navigate('/browse');
+                }
             }
         } else if (e.key === 'ArrowDown') {
             e.preventDefault(); // Prevent cursor moving

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { FaVolumeUp, FaVolumeMute, FaBookmark, FaRegBookmark } from 'react-icons/fa';
 import HTMLFlipBook from "react-pageflip";
@@ -219,12 +219,17 @@ const ZineDetail = () => {
                     <hr className="border-sl-text"></hr>
 
                     {/* Tags */}
+                    {/* Tags */}
                     {zine.tags && zine.tags.length > 0 && (
                         <div className="flex flex-wrap justify-center gap-2 mt-3">
                             {zine.tags.map((tag, index) => (
-                                <span key={index} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                                <Link
+                                    key={index}
+                                    to={`/browse?tag=${encodeURIComponent(tag)}`}
+                                    className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs hover:bg-sl-orange hover:text-white transition-colors"
+                                >
                                     {tag}
-                                </span>
+                                </Link>
                             ))}
                         </div>
                     )}
