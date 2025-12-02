@@ -12,7 +12,9 @@ export const toggleBookmark = async (req, res) => {
     }
 
     const userRef = db.collection('users').doc(userId);
+    const startUser = Date.now();
     const userDoc = await userRef.get();
+    console.log(`[Firestore] Get User ${userId}: ${Date.now() - startUser}ms`);
 
     if (!userDoc.exists) {
       return res.status(404).send('User profile not found.');
@@ -28,9 +30,11 @@ export const toggleBookmark = async (req, res) => {
       const currentBookmarkedZines = userData.bookmarkedZines || [];
       const updatedBookmarkedZines = currentBookmarkedZines.filter(z => z.zineId !== zineId);
 
+      const startUpdate = Date.now();
       await userRef.update({
         bookmarkedZines: updatedBookmarkedZines
       });
+      console.log(`[Firestore] Update User Bookmarks (Remove): ${Date.now() - startUpdate}ms`);
 
       // Also remove from bookmarks collection (optional, keeping for now as backup/audit)
       const snapshot = await db.collection('bookmarks').where('userId', '==', userId).where('zineId', '==', zineId).get();
@@ -44,7 +48,9 @@ export const toggleBookmark = async (req, res) => {
     } else {
       // Add
       // Fetch zine details first
+      const startZine = Date.now();
       const zineDoc = await db.collection('zines').doc(zineId).get();
+      console.log(`[Firestore] Get Zine ${zineId}: ${Date.now() - startZine}ms`);
       if (!zineDoc.exists) {
         return res.status(404).send('Zine not found.');
       }
@@ -58,9 +64,11 @@ export const toggleBookmark = async (req, res) => {
         addedAt: new Date().toISOString()
       };
 
+      const startUpdate = Date.now();
       await userRef.update({
         bookmarkedZines: admin.firestore.FieldValue.arrayUnion(newBookmark)
       });
+      console.log(`[Firestore] Update User Bookmarks (Add): ${Date.now() - startUpdate}ms`);
 
       // Also add to bookmarks collection
       await db.collection('bookmarks').add({
@@ -81,7 +89,9 @@ export const getBookmarks = async (req, res) => {
     const db = getDB();
     const userId = req.user.uid;
 
+    const startGet = Date.now();
     const userDoc = await db.collection('users').doc(userId).get();
+    console.log(`[Firestore] Get User Bookmarks ${userId}: ${Date.now() - startGet}ms`);
     if (!userDoc.exists) {
       return res.status(200).json([]);
     }
@@ -100,7 +110,9 @@ export const checkBookmarkStatus = async (req, res) => {
     const { zineId } = req.params;
     const userId = req.user.uid;
 
+    const startCheck = Date.now();
     const userDoc = await db.collection('users').doc(userId).get();
+    console.log(`[Firestore] Check Bookmark Status ${userId}: ${Date.now() - startCheck}ms`);
     const isBookmarked = userDoc.exists && (userDoc.data().bookmarkedZines || []).some(z => z.zineId === zineId);
 
     res.status(200).json({ bookmarked: isBookmarked });

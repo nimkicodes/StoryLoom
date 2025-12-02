@@ -24,7 +24,9 @@ export const getAllZines = async (req, res) => {
       query = query.where('tags', 'array-contains', req.query.tag);
     }
 
+    const startQuery = Date.now();
     const snapshot = await query.get();
+    console.log(`[Firestore] Get All Zines Query: ${Date.now() - startQuery}ms`);
 
     const zines = [];
     snapshot.forEach(doc => {
@@ -44,7 +46,9 @@ export const getZineById = async (req, res) => {
     const db = getDB();
     const { id } = req.params;
 
+    const startGet = Date.now();
     const doc = await db.collection('zines').doc(id).get();
+    console.log(`[Firestore] Get Zine ${id}: ${Date.now() - startGet}ms`);
 
     if (!doc.exists) {
       return res.status(404).send('Zine not found.');
@@ -71,7 +75,9 @@ export const processAndUploadImages = async (req, res) => {
   try {
     const imageUrls = [];
     for (const file of req.files) {
+      const startUpload = Date.now();
       const gcsUrl = await uploadToGCS(file.buffer, file.originalname);
+      console.log(`[GCS] Upload File ${file.originalname}: ${Date.now() - startUpload}ms`);
       imageUrls.push(gcsUrl);
     }
 
@@ -97,7 +103,9 @@ export const processAndUploadImages = async (req, res) => {
     };
 
     const db = getDB();
+    const startAdd = Date.now();
     const result = await db.collection('zines').add(zine);
+    console.log(`[Firestore] Add Zine: ${Date.now() - startAdd}ms`);
     console.log(`[Controller] Successfully inserted zine into Firestore with ID: ${result.id}`);
 
     // Update user's createdZines array
@@ -110,9 +118,11 @@ export const processAndUploadImages = async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
+    const startUpdate = Date.now();
     await userRef.update({
       createdZines: admin.firestore.FieldValue.arrayUnion(zineSummary)
     });
+    console.log(`[Firestore] Update User Created Zines: ${Date.now() - startUpdate}ms`);
     console.log(`[Controller] Updated user ${req.user.uid} createdZines with new zine.`);
 
     const responsePayload = {
@@ -134,7 +144,9 @@ export const processAndUploadImages = async (req, res) => {
 export const getAllTags = async (req, res) => {
   try {
     const db = getDB();
+    const startTags = Date.now();
     const snapshot = await db.collection('zines').select('tags').get();
+    console.log(`[Firestore] Get All Tags: ${Date.now() - startTags}ms`);
     const tags = new Set();
 
     snapshot.forEach(doc => {

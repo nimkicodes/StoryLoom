@@ -6,9 +6,12 @@ export const syncUser = async (req, res) => {
     const { uid, email, displayName, photoURL } = req.user; // from auth middleware
 
     const userRef = db.collection('users').doc(uid);
+    const startGet = Date.now();
     const doc = await userRef.get();
+    console.log(`[Firestore] Get User ${uid}: ${Date.now() - startGet}ms`);
 
     if (!doc.exists) {
+      const startSet = Date.now();
       await userRef.set({
         email,
         displayName: displayName || email.split('@')[0],
@@ -16,12 +19,15 @@ export const syncUser = async (req, res) => {
         createdAt: new Date(),
         updatedAt: new Date()
       });
+      console.log(`[Firestore] Create User ${uid}: ${Date.now() - startSet}ms`);
       console.log(`[UserController] Created new user document for ${uid}`);
     } else {
       // Optional: Update last login or other fields
+      const startUpdate = Date.now();
       await userRef.update({
         updatedAt: new Date()
       });
+      console.log(`[Firestore] Update User ${uid}: ${Date.now() - startUpdate}ms`);
     }
 
     res.status(200).json({ message: 'User synced successfully' });
@@ -36,7 +42,9 @@ export const getUserProfile = async (req, res) => {
     const db = getDB();
     const { userId } = req.params;
 
+    const startGet = Date.now();
     const doc = await db.collection('users').doc(userId).get();
+    console.log(`[Firestore] Get User Profile ${userId}: ${Date.now() - startGet}ms`);
 
     if (!doc.exists) {
       return res.status(404).send('User not found.');
