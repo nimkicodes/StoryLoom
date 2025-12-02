@@ -19,7 +19,17 @@ export default function Login() {
     try {
       setError("");
       setLoading(true);
-      await login(emailRef.current.value, passwordRef.current.value);
+      const userCredential = await login(emailRef.current.value, passwordRef.current.value);
+      const user = userCredential.user;
+      const token = await user.getIdToken();
+
+      await fetch('/api/users/sync', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
       navigate(from, { replace: true });
     } catch (err) {
       setError("Failed to log in: " + err.message);

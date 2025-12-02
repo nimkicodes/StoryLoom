@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import zineRoutes from './routes/zineRoutes.js';
 import bookmarkRoutes from './routes/bookmarkRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import { connectDB } from './db.js';
 
 const app = express();
@@ -18,6 +19,7 @@ connectDB().then(() => {
 
   app.use('/api/zines', zineRoutes);
   app.use('/api/bookmarks', bookmarkRoutes);
+  app.use('/api/users', userRoutes);
 
   app.use((err, req, res, next) => {
     console.error(err.stack);

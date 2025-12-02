@@ -22,7 +22,17 @@ export default function Signup() {
     try {
       setError("");
       setLoading(true);
-      await signup(emailRef.current.value, passwordRef.current.value);
+      const userCredential = await signup(emailRef.current.value, passwordRef.current.value);
+      const user = userCredential.user;
+      const token = await user.getIdToken();
+
+      await fetch('/api/users/sync', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
       navigate("/");
     } catch (err) {
       setError("Failed to create an account: " + err.message);

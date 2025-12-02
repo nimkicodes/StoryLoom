@@ -11,23 +11,41 @@ export const toggleBookmark = async (req, res) => {
       return res.status(400).send('Zine ID is required.');
     }
 
-    const bookmarksRef = db.collection('bookmarks');
-    const query = bookmarksRef.where('userId', '==', userId).where('zineId', '==', zineId);
-    const snapshot = await query.get();
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
 
-    if (snapshot.empty) {
-      // Create bookmark
-      await bookmarksRef.add({
+    if (!userDoc.exists) {
+      // Should ideally exist if synced, but handle case
+      return res.status(404).send('User profile not found.');
+    }
+
+    const userData = userDoc.data();
+    const bookmarks = userData.bookmarkedZineIds || [];
+    const isBookmarked = bookmarks.includes(zineId);
+
+    if (isBookmarked) {
+      // Remove
+      await userRef.update({
+        bookmarkedZineIds: admin.firestore.FieldValue.arrayRemove(zineId)
+      });
+      // Also remove from bookmarks collection (optional, keeping for now as backup/audit)
+      const snapshot = await db.collection('bookmarks').where('userId', '==', userId).where('zineId', '==', zineId).get();
+      if (!snapshot.empty) {
+        await db.collection('bookmarks').doc(snapshot.docs[0].id).delete();
+      }
+      res.status(200).json({ bookmarked: false });
+    } else {
+      // Add
+      await userRef.update({
+        bookmarkedZineIds: admin.firestore.FieldValue.arrayUnion(zineId)
+      });
+      // Also add to bookmarks collection
+      await db.collection('bookmarks').add({
         userId,
         zineId,
         createdAt: new Date()
       });
       res.status(201).json({ bookmarked: true });
-    } else {
-      // Remove bookmark
-      const docId = snapshot.docs[0].id;
-      await bookmarksRef.doc(docId).delete();
-      res.status(200).json({ bookmarked: false });
     }
   } catch (error) {
     console.error('Error toggling bookmark:', error);
@@ -40,17 +58,16 @@ export const getBookmarks = async (req, res) => {
     const db = getDB();
     const userId = req.user.uid;
 
-    const bookmarksSnapshot = await db.collection('bookmarks').where('userId', '==', userId).get();
-    const zineIds = bookmarksSnapshot.docs.map(doc => doc.data().zineId);
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (!userDoc.exists) {
+      return res.status(200).json([]);
+    }
+
+    const zineIds = userDoc.data().bookmarkedZineIds || [];
 
     if (zineIds.length === 0) {
       return res.status(200).json([]);
     }
-
-    // Firestore 'in' query supports up to 10 values. If we have more, we might need to batch or fetch all zines and filter (not ideal but okay for MVP).
-    // For now, let's assume < 10 or just fetch individually if needed.
-    // Actually, let's just fetch the zine details for these IDs.
-    // Since 'in' limit is 10, let's do Promise.all for now which is simpler for > 10 items than chunking 'in' queries.
 
     const zinePromises = zineIds.map(id => db.collection('zines').doc(id).get());
     const zineSnapshots = await Promise.all(zinePromises);
@@ -72,12 +89,10 @@ export const checkBookmarkStatus = async (req, res) => {
     const { zineId } = req.params;
     const userId = req.user.uid;
 
-    const snapshot = await db.collection('bookmarks')
-      .where('userId', '==', userId)
-      .where('zineId', '==', zineId)
-      .get();
+    const userDoc = await db.collection('users').doc(userId).get();
+    const isBookmarked = userDoc.exists && (userDoc.data().bookmarkedZineIds || []).includes(zineId);
 
-    res.status(200).json({ bookmarked: !snapshot.empty });
+    res.status(200).json({ bookmarked: isBookmarked });
   } catch (error) {
     console.error('Error checking bookmark status:', error);
     res.status(500).send('Failed to check bookmark status.');

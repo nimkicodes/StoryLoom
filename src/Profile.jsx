@@ -20,24 +20,36 @@ const Profile = () => {
             if (!currentUser) return;
 
             try {
+                // Fetch user profile for bookmarks
+                const userResponse = await fetch(`/api/users/${currentUser.uid}`);
+                let bookmarkedIds = [];
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    bookmarkedIds = userData.bookmarkedZineIds || [];
+                    // Optimistic update for count
+                    setBookmarks(new Array(bookmarkedIds.length).fill({}));
+                }
+
                 // Fetch user zines
-                const zinesResponse = await fetch(`/api/zines?_t=${Date.now()}`);
+                const zinesResponse = await fetch(`/api/zines?userId=${currentUser.uid}&_t=${Date.now()}`);
                 if (zinesResponse.ok) {
-                    const allZines = await zinesResponse.json();
-                    const userZines = allZines.filter(zine => zine.userId === currentUser.uid);
+                    const userZines = await zinesResponse.json();
                     setZines(userZines);
                 }
 
-                // Fetch bookmarks
-                const token = await currentUser.getIdToken();
-                const bookmarksResponse = await fetch('/api/bookmarks', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
+                // Fetch actual bookmark details
+                if (bookmarkedIds.length > 0) {
+                    const bookmarksResponse = await fetch('/api/bookmarks', {
+                        headers: {
+                            'Authorization': `Bearer ${await currentUser.getIdToken()}`
+                        }
+                    });
+                    if (bookmarksResponse.ok) {
+                        const userBookmarks = await bookmarksResponse.json();
+                        setBookmarks(userBookmarks);
                     }
-                });
-                if (bookmarksResponse.ok) {
-                    const userBookmarks = await bookmarksResponse.json();
-                    setBookmarks(userBookmarks);
+                } else {
+                    setBookmarks([]);
                 }
 
             } catch (err) {
@@ -95,11 +107,11 @@ const Profile = () => {
 
                             <div className="flex gap-8 text-sl-title">
                                 <div className="flex flex-col">
-                                    <span className="text-xl md:text-2xl font-bold">{zines.length}</span>
+                                    <span className="text-xl md:text-2xl font-bold">{loading ? '-' : zines.length}</span>
                                     <span className="text-xs md:text-sm text-gray-500">Zines Created</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-xl md:text-2xl font-bold">{bookmarks.length}</span>
+                                    <span className="text-xl md:text-2xl font-bold">{loading ? '-' : bookmarks.length}</span>
                                     <span className="text-xs md:text-sm text-gray-500">Bookmarks</span>
                                 </div>
                             </div>

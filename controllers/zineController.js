@@ -14,7 +14,13 @@ export const getAllZines = async (req, res) => {
   console.log('[Controller] Entered getAllZines function.');
   try {
     const db = getDB();
-    const snapshot = await db.collection('zines').orderBy('createdAt', 'desc').get();
+    let query = db.collection('zines').orderBy('createdAt', 'desc');
+
+    if (req.query.userId) {
+      query = query.where('userId', '==', req.query.userId);
+    }
+
+    const snapshot = await query.get();
 
     const zines = [];
     snapshot.forEach(doc => {
