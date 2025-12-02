@@ -3,7 +3,7 @@ import logoYarn from '../resource/logo_yarn.png'; // Import the image directly
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useState } from 'react';
-import { HiHome, HiBookOpen, HiPlusCircle, HiUser, HiMenu, HiX } from 'react-icons/hi';
+import { HiHome, HiBookOpen, HiPlusCircle, HiUser, HiMenu, HiX, HiLogin } from 'react-icons/hi';
 
 export const NavBar = () => {
     const { currentUser } = useAuth();
@@ -74,6 +74,7 @@ export const NavBar = () => {
                         </Link>
                     ) : (
                         <Link to="/login" className={getLinkClass('/login')}>
+                            <HiLogin className="text-xl" />
                             <span>Log In</span>
                         </Link>
                     )}
@@ -103,6 +104,7 @@ export const NavBar = () => {
                         </Link>
                     ) : (
                         <Link to="/login" className={getLinkClass('/login')} onClick={closeMenu}>
+                            <HiLogin className="text-xl" />
                             <span>Log In</span>
                         </Link>
                     )}
