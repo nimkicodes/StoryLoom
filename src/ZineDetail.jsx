@@ -90,18 +90,47 @@ const ZineDetail = () => {
     };
 
     const [dimensions, setDimensions] = useState({ width: 550, height: 650 });
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
     useEffect(() => {
+        let timeoutId;
         const handleResize = () => {
-            const width = Math.min(window.innerWidth * 0.9, 550);
-            const height = Math.min(window.innerHeight * 0.8, 650);
-            // Maintain aspect ratio roughly if needed, or just fit to screen
-            setDimensions({ width, height });
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                const isMobileView = window.innerWidth < 768;
+                setIsMobile(isMobileView);
+
+                let width, height;
+                // Calculate available height: window height - navbar - header - footer - padding
+                // Approx: 100vh - 64px (nav) - 100px (header) - 60px (footer) - 40px (padding) ~= 100vh - 260px
+                const availableHeight = window.innerHeight - 280;
+
+                if (isMobileView) {
+                    // Mobile: nearly full width, appropriate height
+                    width = Math.min(window.innerWidth - 30, 400);
+                    height = Math.min(availableHeight, 600);
+                } else {
+                    // Desktop: standard sizing
+                    // Ensure height doesn't exceed available space
+                    height = Math.min(availableHeight, 650);
+                    // Maintain aspect ratio roughly (e.g., 0.85) or max width
+                    width = Math.min(window.innerWidth * 0.45, height * 0.85);
+                }
+
+                // Ensure minimum dimensions to avoid breaking
+                width = Math.max(width, 200);
+                height = Math.max(height, 300);
+
+                setDimensions({ width, height });
+            }, 100); // Debounce resize
         };
 
-        handleResize();
+        handleResize(); // Initial call
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            clearTimeout(timeoutId);
+        };
     }, []);
 
     const bookRef = React.useRef();
@@ -178,11 +207,13 @@ const ZineDetail = () => {
 
                 <div className="flex flex-col justify-center justify-items-center items-center mt-5 h-[calc(100vh-200px)]">
                     <HTMLFlipBook
+                        key={`${dimensions.width}-${dimensions.height}-${isMobile}`} // Force re-render on resize
                         className="bg-transparent"
                         flippingTime={500}
                         width={dimensions.width}
                         height={dimensions.height}
                         showCover={true}
+                        usePortrait={isMobile}
                         ref={bookRef}
                         onFlip={playFlipSound}
                     >
