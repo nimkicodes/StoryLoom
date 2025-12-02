@@ -10,6 +10,7 @@ const Browse = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchQuery, setSearchQuery] = useState(''); // New state for the actual search trigger
     const [allTags, setAllTags] = useState([]);
     const [filteredTags, setFilteredTags] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -35,8 +36,8 @@ const Browse = () => {
             setLoading(true);
             try {
                 let url = '/api/zines';
-                if (searchTerm) {
-                    url += `?tag=${encodeURIComponent(searchTerm)}`;
+                if (searchQuery) {
+                    url += `?tag=${encodeURIComponent(searchQuery)}`;
                 }
                 const response = await fetch(url);
                 if (!response.ok) {
@@ -51,13 +52,8 @@ const Browse = () => {
             }
         };
 
-        // Debounce search if typing, but immediate if selected from suggestion (handled separately)
-        const timeoutId = setTimeout(() => {
-            fetchZines();
-        }, 500);
-
-        return () => clearTimeout(timeoutId);
-    }, [searchTerm]);
+        fetchZines();
+    }, [searchQuery]); // Depend on searchQuery instead of searchTerm
 
     const handleSearchChange = (e) => {
         const value = e.target.value;
@@ -67,13 +63,22 @@ const Browse = () => {
             setFilteredTags(filtered);
             setShowSuggestions(true);
         } else {
+            setSearchQuery(''); // Trigger search (reset) when empty
             setShowSuggestions(false);
         }
     };
 
     const handleTagSelect = (tag) => {
         setSearchTerm(tag);
+        setSearchQuery(tag); // Trigger search
         setShowSuggestions(false);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            setSearchQuery(searchTerm); // Trigger search on Enter
+            setShowSuggestions(false);
+        }
     };
 
     const slugify = (text) => {
@@ -98,6 +103,7 @@ const Browse = () => {
                         placeholder="Search by tag..."
                         value={searchTerm}
                         onChange={handleSearchChange}
+                        onKeyDown={handleKeyDown}
                         onFocus={() => searchTerm && setShowSuggestions(true)}
                         onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Delay to allow click
                         className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-sl-orange"
