@@ -182,7 +182,7 @@ const Profile = () => {
                     ) : bookmarks.length === 0 ? (
                         <div className="text-center py-10">
                             <p className="text-gray-500 mb-4">You haven't bookmarked any zines yet.</p>
-                            <Link to="/" className="text-sl-orange font-bold hover:underline">Explore zines to bookmark!</Link>
+                            <Link to="/browse" className="text-sl-orange font-bold hover:underline">Explore zines to bookmark!</Link>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
