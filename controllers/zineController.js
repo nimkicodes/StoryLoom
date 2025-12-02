@@ -77,7 +77,7 @@ export const processAndUploadImages = async (req, res) => {
 
     const title = req.body.title;
     const author = req.body.author;
-    const tags = req.body.tags ? req.body.tags.split(',').map(tag => tag.trim().replace(/^#/, '')).filter(tag => tag.length > 0) : [];
+    const tags = req.body.tags ? req.body.tags.split(',').map(tag => tag.trim().toLowerCase().replace(/^#/, '').replace(/\s+/g, ' ')).filter(tag => tag.length > 0) : [];
 
     if (!title || title.trim() === '') {
       return res.status(400).send('Zine title is required.');
