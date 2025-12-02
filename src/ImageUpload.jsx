@@ -361,7 +361,7 @@ export const ImageUpload = ({ title, author, tags, onUploadSuccess }) => {
           setTimeout(() => setUploadStatus('idle'), 500);
         });
 
-        xhr.open('POST', 'http://localhost:3001/api/zines/upload');
+        xhr.open('POST', '/api/zines/upload');
         if (token) {
           xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         }

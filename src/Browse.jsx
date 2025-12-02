@@ -11,7 +11,7 @@ const Browse = () => {
     useEffect(() => {
         const fetchZines = async () => {
             try {
-                const response = await fetch('http://localhost:3001/api/zines');
+                const response = await fetch('/api/zines');
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

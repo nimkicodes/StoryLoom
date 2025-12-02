@@ -18,7 +18,7 @@ const Profile = () => {
 
             try {
                 // Add timestamp to prevent caching
-                const response = await fetch(`http://localhost:3001/api/zines?_t=${Date.now()}`);
+                const response = await fetch(`/api/zines?_t=${Date.now()}`);
                 if (!response.ok) throw new Error('Failed to fetch zines');
 
                 const allZines = await response.json();

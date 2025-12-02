@@ -22,7 +22,7 @@ const ZineDetail = () => {
     useEffect(() => {
         const fetchZine = async () => {
             try {
-                const response = await fetch(`http://localhost:3001/api/zines/${id}`);
+                const response = await fetch(`/api/zines/${id}`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

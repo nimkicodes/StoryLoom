@@ -3,9 +3,14 @@ import { defineConfig } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 
 export default defineConfig({
-    plugins: [pluginReact({
-        react: {
-            jsx: 'automatic',
+    plugins: [pluginReact()],
+    server: {
+        proxy: {
+            '/api': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+                secure: false,
+            },
         },
-    })],
+    },
 });
