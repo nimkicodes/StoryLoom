@@ -27,7 +27,7 @@ export const NavBar = () => {
     const getLinkClass = (path) => {
         const baseClass = "flex items-center gap-2 px-4 py-2 rounded-lg transition-all w-full md:w-auto";
         if (isActive(path)) {
-            return `${baseClass} bg-sl-title text-white`;
+            return `${baseClass} bg-sl-orange text-white`;
         }
         return `${baseClass} hover:text-sl-title hover:bg-gray-100`;
     };
