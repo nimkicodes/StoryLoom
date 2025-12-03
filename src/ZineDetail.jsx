@@ -49,8 +49,14 @@ const ZineDetail = () => {
                 const response = await fetch(`/api/users/${currentUser.uid}`);
                 if (response.ok) {
                     const userData = await response.json();
-                    const bookmarks = userData.bookmarkedZines || [];
-                    const isBookmarked = bookmarks.some(b => b.zineId === id);
+                    const bookmarks = userData.bookmarkedZines || {};
+                    // Check if it's an array (legacy) or map (new)
+                    let isBookmarked = false;
+                    if (Array.isArray(bookmarks)) {
+                        isBookmarked = bookmarks.some(b => b.zineId === id);
+                    } else {
+                        isBookmarked = !!bookmarks[id];
+                    }
                     setIsBookmarked(isBookmarked);
                 }
             } catch (error) {

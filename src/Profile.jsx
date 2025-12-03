@@ -30,11 +30,11 @@ const Profile = () => {
                         const mappedZines = userData.createdZines.map(z => ({
                             ...z,
                             _id: z.zineId,
-                            pages: [z.coverImage] // Map coverImage to pages[0] for UI compatibility
+                            pages: [z.coverImage]
                         }));
                         setZines(mappedZines);
                     } else {
-                        // Fallback to old API if not present (optional, but good for safety)
+                        // Fallback to old API if not present
                         const zinesResponse = await fetch(`/api/zines?userId=${currentUser.uid}&_t=${Date.now()}`);
                         if (zinesResponse.ok) {
                             const userZines = await zinesResponse.json();
@@ -42,17 +42,22 @@ const Profile = () => {
                         }
                     }
 
-                    // Handle Bookmarks (Denormalized)
-                    if (userData.bookmarkedZines && Array.isArray(userData.bookmarkedZines)) {
-                        const mappedBookmarks = userData.bookmarkedZines.map(b => ({
-                            ...b,
-                            _id: b.zineId,
-                            pages: [b.coverImage] // Map coverImage to pages[0] for UI compatibility
-                        }));
-                        setBookmarks(mappedBookmarks);
-                    } else {
-                        setBookmarks([]);
+                    // Handle Bookmarks (Map or Array)
+                    let bookmarksData = [];
+                    if (userData.bookmarkedZines) {
+                        if (Array.isArray(userData.bookmarkedZines)) {
+                            bookmarksData = userData.bookmarkedZines;
+                        } else {
+                            bookmarksData = Object.values(userData.bookmarkedZines);
+                        }
                     }
+
+                    const mappedBookmarks = bookmarksData.map(b => ({
+                        ...b,
+                        _id: b.zineId,
+                        pages: [b.coverImage]
+                    }));
+                    setBookmarks(mappedBookmarks);
                 }
             } catch (err) {
                 console.error("Error fetching data:", err);
