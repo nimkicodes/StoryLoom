@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { NavBar } from './Globals';
 import { HiLogout } from 'react-icons/hi';
 import './index.css';
@@ -9,21 +9,28 @@ import usePageTitle from './hooks/usePageTitle';
 const Profile = () => {
     usePageTitle('Profile');
     const { currentUser, logout } = useAuth();
+    const { userId } = useParams(); // Get user ID from URL if present
     const [error, setError] = useState('');
     const [zines, setZines] = useState([]);
     const [bookmarks, setBookmarks] = useState([]);
+    const [profileUser, setProfileUser] = useState(null); // Stores the user data of the profile being viewed
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    const targetUserId = userId || currentUser?.uid;
+    const isOwner = currentUser && targetUserId === currentUser.uid;
+
     useEffect(() => {
         const fetchData = async () => {
-            if (!currentUser) return;
+            if (!targetUserId) return;
 
+            setLoading(true); // Reset loading state on id change
             try {
                 // Fetch user profile
-                const userResponse = await fetch(`/api/users/${currentUser.uid}`);
+                const userResponse = await fetch(`/api/users/${targetUserId}`);
                 if (userResponse.ok) {
                     const userData = await userResponse.json();
+                    setProfileUser(userData);
 
                     // Handle Created Zines (Denormalized)
                     if (userData.createdZines && Array.isArray(userData.createdZines)) {
@@ -35,7 +42,7 @@ const Profile = () => {
                         setZines(mappedZines);
                     } else {
                         // Fallback to old API if not present
-                        const zinesResponse = await fetch(`/api/zines?userId=${currentUser.uid}&_t=${Date.now()}`);
+                        const zinesResponse = await fetch(`/api/zines?userId=${targetUserId}&_t=${Date.now()}`);
                         if (zinesResponse.ok) {
                             const userZines = await zinesResponse.json();
                             setZines(userZines);
@@ -58,16 +65,19 @@ const Profile = () => {
                         pages: [b.coverImage]
                     }));
                     setBookmarks(mappedBookmarks);
+                } else {
+                    setError("User not found");
                 }
             } catch (err) {
                 console.error("Error fetching data:", err);
+                setError("Failed to load profile");
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, [currentUser]);
+    }, [targetUserId]);
 
     async function handleLogout() {
         setError('');
@@ -91,8 +101,8 @@ const Profile = () => {
     };
 
 
-    const avatarLetter = currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : currentUser.email.charAt(0).toUpperCase();
-    const displayName = currentUser.displayName || currentUser.email.split('@')[0];
+    const avatarLetter = profileUser?.displayName ? profileUser.displayName.charAt(0).toUpperCase() : (profileUser?.email?.charAt(0).toUpperCase() || (zines.length > 0 ? zines[0].author.charAt(0).toUpperCase() : '?'));
+    const displayName = profileUser?.displayName || profileUser?.email?.split('@')[0] || (zines.length > 0 ? zines[0].author : 'Unknown User');
 
     return (
         <div className="flex flex-col min-h-screen bg-sl-background font-sans">
@@ -101,52 +111,63 @@ const Profile = () => {
             <div className="flex-grow w-full max-w-6xl mx-auto px-4 py-8">
                 {/* Profile Header Card */}
                 <div className="bg-white rounded-3xl shadow-sm p-6 md:p-8 mb-8 md:mb-12 flex flex-col md:flex-row items-center justify-between relative gap-6 md:gap-0">
-                    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 text-center md:text-left">
-                        {/* Avatar */}
-                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-sl-orange flex items-center justify-center text-white text-3xl md:text-4xl font-bold shadow-inner">
-                            {avatarLetter}
+                    {loading ? (
+                        <div className="w-full flex flex-col items-center justify-center py-8">
+                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-200 animate-pulse mb-4"></div>
+                            <div className="h-8 w-48 bg-gray-200 animate-pulse mb-2 rounded"></div>
+                            <div className="h-4 w-32 bg-gray-200 animate-pulse mb-4 rounded"></div>
                         </div>
-
-                        {/* User Info */}
-                        <div className="flex flex-col items-center md:items-start">
-                            <h1 className="text-2xl md:text-4xl font-bold text-sl-title mb-1">{displayName}</h1>
-                            <p className="text-gray-500 text-base md:text-lg mb-4">{currentUser.email}</p>
-
-                            <div className="flex gap-8 text-sl-title">
-                                <div className="flex flex-col">
-                                    <span className="text-xl md:text-2xl font-bold">{loading ? '-' : zines.length}</span>
-                                    <span className="text-xs md:text-sm text-gray-500">Zines Created</span>
+                    ) : (
+                        <>
+                            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 text-center md:text-left">
+                                {/* Avatar */}
+                                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-sl-orange flex items-center justify-center text-white text-3xl md:text-4xl font-bold shadow-inner">
+                                    {avatarLetter}
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-xl md:text-2xl font-bold">{loading ? '-' : bookmarks.length}</span>
-                                    <span className="text-xs md:text-sm text-gray-500">Bookmarks</span>
+
+                                <div className="flex flex-col items-center md:items-start">
+                                    <h1 className="text-2xl md:text-4xl font-bold text-sl-title mb-1">{displayName}</h1>
+                                    {/* Only show email if it's the current user's profile, for privacy */}
+                                    {isOwner && <p className="text-gray-500 text-base md:text-lg mb-4">{profileUser?.email}</p>}
+
+                                    <div className="flex gap-8 text-sl-title">
+                                        <div className="flex flex-col">
+                                            <span className="text-xl md:text-2xl font-bold">{zines.length}</span>
+                                            <span className="text-xs md:text-sm text-gray-500">Zines Created</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-xl md:text-2xl font-bold">{bookmarks.length}</span>
+                                            <span className="text-xs md:text-sm text-gray-500">Bookmarks</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Sign Out Button */}
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 px-6 py-2 border border-sl-orange text-sl-orange rounded-lg hover:bg-sl-orange hover:text-white transition-colors font-medium md:absolute md:top-8 md:right-8 w-full md:w-auto justify-center"
-                    >
-                        <HiLogout className="text-xl" />
-                        <span>Sign Out</span>
-                    </button>
+                            {/* Sign Out Button - Only show if owner */}
+                            {isOwner && (
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 px-6 py-2 border border-sl-orange text-sl-orange rounded-lg hover:bg-sl-orange hover:text-white transition-colors font-medium md:absolute md:top-8 md:right-8 w-full md:w-auto justify-center"
+                                >
+                                    <HiLogout className="text-xl" />
+                                    <span>Sign Out</span>
+                                </button>
+                            )}
 
-                    {error && <div className="absolute bottom-4 right-8 text-red-500 text-sm">{error}</div>}
+                            {error && <div className="absolute bottom-4 right-8 text-red-500 text-sm">{error}</div>}
+                        </>
+                    )}
                 </div>
 
-                {/* Zines Grid */}
                 <div className="w-full">
-                    <h2 className="text-2xl font-bold text-sl-title mb-6 border-b border-gray-200 pb-2">Your Zines</h2>
+                    <h2 className="text-2xl font-bold text-sl-title mb-6 border-b border-gray-200 pb-2">{isOwner ? 'Your Zines' : 'Zines'}</h2>
 
                     {loading ? (
-                        <p className="text-center text-gray-500 py-10">Loading your zines...</p>
+                        <p className="text-center text-gray-500 py-10">Loading zines...</p>
                     ) : zines.length === 0 ? (
                         <div className="text-center py-10">
-                            <p className="text-gray-500 mb-4">You haven't created any zines yet.</p>
-                            <Link to="/create" className="text-sl-orange font-bold hover:underline">Create your first zine!</Link>
+                            <p className="text-gray-500 mb-4">{isOwner ? "You haven't created any zines yet." : "This user hasn't created any zines yet."}</p>
+                            {isOwner && <Link to="/create" className="text-sl-orange font-bold hover:underline">Create your first zine!</Link>}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
@@ -182,14 +203,14 @@ const Profile = () => {
 
                 {/* Bookmarks Grid */}
                 <div className="w-full mt-12">
-                    <h2 className="text-2xl font-bold text-sl-title mb-6 border-b border-gray-200 pb-2">Your Bookmarks</h2>
+                    <h2 className="text-2xl font-bold text-sl-title mb-6 border-b border-gray-200 pb-2">{isOwner ? 'Your Bookmarks' : 'Bookmarks'}</h2>
 
                     {loading ? (
-                        <p className="text-center text-gray-500 py-10">Loading your bookmarks...</p>
+                        <p className="text-center text-gray-500 py-10">Loading bookmarks...</p>
                     ) : bookmarks.length === 0 ? (
                         <div className="text-center py-10">
-                            <p className="text-gray-500 mb-4">You haven't bookmarked any zines yet.</p>
-                            <Link to="/browse" className="text-sl-orange font-bold hover:underline">Explore zines to bookmark!</Link>
+                            <p className="text-gray-500 mb-4">{isOwner ? "You haven't bookmarked any zines yet." : "This user hasn't bookmarked any zines yet."}</p>
+                            {isOwner && <Link to="/browse" className="text-sl-orange font-bold hover:underline">Explore zines to bookmark!</Link>}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">

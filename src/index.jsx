@@ -25,6 +25,7 @@ root.render(
                     <Route exact path="/create" element={<Create />} />
                     <Route exact path="/profile" element={<Profile />} />
                 </Route>
+                <Route exact path="/profile/:userId" element={<Profile />} />
                 <Route exact path="/reader" element={<Reader />} />
                 <Route exact path="/login" element={<Login />} />
                 <Route exact path="/signup" element={<Signup />} />

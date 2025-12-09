@@ -217,7 +217,13 @@ const ZineDetail = () => {
                 <div ref={headerRef}>
                     <div className="pt-16 md:pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">
                         <h1 className="font-serif font-bold text-sl-title text-2xl md:text-4xl">{zine.title}</h1>
-                        <span className="text-xs md:text-base text-gray-600">by {zine.author}</span>
+                        {zine.userId ? (
+                            <Link to={`/profile/${zine.userId}`} className="text-xs md:text-base text-sl-orange font-bold hover:underline transition-colors">
+                                by {zine.author}
+                            </Link>
+                        ) : (
+                            <span className="text-xs md:text-base text-gray-600">by {zine.author}</span>
+                        )}
                     </div>
                     <hr className="border-sl-text"></hr>
 
