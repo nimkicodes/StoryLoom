@@ -197,3 +197,39 @@ export const getAllTags = async (req, res) => {
     res.status(500).send('Failed to fetch tags.');
   }
 };
+
+export const deleteZineById = async (req, res) => {
+  console.log('[Controller] Entered deleteZineById function.');
+  try {
+    const db = getDB();
+    const { id } = req.params;
+
+    const zine_doc = db.collection('zines').doc(id);
+    let data = (await zine_doc.get()).data();
+    let userId = data.userId;
+    zine_doc.delete().then(() => {
+      console.log("[Controller] Zine successfully deleted.");
+    }).catch((error) => {
+      console.error("[Controller] Error removing zine: ", error);
+    });
+
+    let user_doc = db.collection('users').doc(userId);
+    let created_zines = (await user_doc.get()).data().createdZines;
+
+    // not optimal but necessary as we need the value to remove a zine from a
+    // user's createdZines array. Changing the createdZines array to map with
+    // zineId as the key would solve this issue.
+    created_zines.forEach((x, i) => {
+      if (x.zineId == id) {
+        user_doc.update({
+          createdZines: admin.firestore.FieldValue.arrayRemove(x)
+        });
+      }
+    });
+
+    res.status(200).json(null);
+  } catch (error) {
+    console.error('[Controller] Error deleting zine by ID:', error);
+    res.status(500).send('Failed to delete zine.');
+  }
+};

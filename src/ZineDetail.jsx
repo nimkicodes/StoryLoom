@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-import { FaVolumeUp, FaVolumeMute, FaBookmark, FaRegBookmark } from 'react-icons/fa';
+import { auth } from './firebase';
+import { FaVolumeUp, FaVolumeMute, FaBookmark, FaRegBookmark, FaRegTrashAlt } from 'react-icons/fa';
 import HTMLFlipBook from "react-pageflip";
 import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import './index.css';
@@ -107,6 +108,51 @@ const ZineDetail = () => {
         }
     };
 
+    const handleDelete = async () => {
+        let shouldDelete = confirm("WARNING: This action is irreversible. Do you want to delete this zine?");
+        if (!shouldDelete) { return; }
+        let userId = zine.userId;
+        if (!userId) { return; }
+
+        const formData = new FormData();
+        formData.append('userId', userId);
+
+        const deleteZine = async () => {
+            try {
+                const token = await auth.currentUser?.getIdToken();
+                const xhr = new XMLHttpRequest();
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status == 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response == null) {
+                            // TODO: redirect
+                        }
+                    } else {
+                        alert('Deletion failed. The server responded with an error.');
+                        console.log(response);
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    alert('Deletion failed. Please check your network connection.');
+                });
+
+                xhr.open('DELETE', `/api/zines/${id}`);
+                if (token) {
+                    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+                }
+
+                xhr.send(formData);
+            } catch (error) {
+                console.error("Error getting token:", error);
+                alert("Authentication error. Please try logging in again.");
+            }
+        };
+
+        deleteZine();
+    };
+
     const [dimensions, setDimensions] = useState({ width: 550, height: 650 });
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -192,6 +238,9 @@ const ZineDetail = () => {
     if (error) return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
     if (!zine) return <div className="text-center mt-10">Zine not found</div>;
 
+    const targetUserId = zine.userId || currentUser?.uid;
+    const isOwner = currentUser && targetUserId === currentUser.uid;
+
     return (
         <div className="flex flex-col h-dvh overflow-y-auto md:h-screen md:overflow-hidden bg-sl-background">
             <NavBar />
@@ -213,6 +262,16 @@ const ZineDetail = () => {
                 >
                     {isBookmarked ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
                 </button>
+
+                {isOwner &&
+                    <button
+                        onClick={handleDelete}
+                        className="absolute top-4 left-4 md:top-10 md:left-6 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
+                        title="Delete this zine"
+                    >
+                    <FaRegTrashAlt size={20} />
+                    </button>
+                }
 
                 <div ref={headerRef}>
                     <div className="pt-16 md:pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">

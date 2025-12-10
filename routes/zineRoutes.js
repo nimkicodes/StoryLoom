@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { processAndUploadImages, getAllZines, getZineById, getAllTags } from '../controllers/zineController.js';
+import { processAndUploadImages, getAllZines, getZineById, getAllTags, deleteZineById } from '../controllers/zineController.js';
 
 const router = express.Router();
 
@@ -16,5 +16,6 @@ router.post('/upload', verifyToken, upload.array('images', 20), processAndUpload
 router.get('/', getAllZines);
 router.get('/tags', getAllTags);
 router.get('/:id', getZineById);
+router.delete('/:id', deleteZineById);
 
 export default router;
