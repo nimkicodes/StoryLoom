@@ -4,6 +4,17 @@ import { useAuth } from './contexts/AuthContext';
 import { useSnackbar } from './contexts/SnackbarContext';
 import { auth } from './firebase';
 import { FaVolumeUp, FaVolumeMute, FaBookmark, FaRegBookmark, FaRegTrashAlt } from 'react-icons/fa';
+import { Button } from './components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogClose
+} from './components/ui/dialog';
 import HTMLFlipBook from "react-pageflip";
 import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import './index.css';
@@ -112,10 +123,6 @@ const ZineDetail = () => {
     const { showSnackbar } = useSnackbar();
 
     const handleDelete = async () => {
-        if (!confirm("WARNING: This action is irreversible. Do you want to delete this zine?")) {
-            return;
-        }
-
         try {
             const token = await auth.currentUser?.getIdToken();
             const response = await fetch(`/api/zines/${id}`, {
@@ -248,15 +255,34 @@ const ZineDetail = () => {
                     {isBookmarked ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
                 </button>
 
-                {isOwner &&
-                    <button
-                        onClick={handleDelete}
-                        className="absolute top-4 left-4 md:top-10 md:left-6 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
-                        title="Delete this zine"
-                    >
-                        <FaRegTrashAlt size={20} />
-                    </button>
-                }
+                {isOwner && (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-4 left-14 md:top-10 md:left-12 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
+                                title="Delete Zine"
+                            >
+                                <FaRegTrashAlt size={20} />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Delete Zine</DialogTitle>
+                                <DialogDescription>
+                                    Are you sure you want to delete "{zine.title}"? This action cannot be undone.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                )}
 
                 <div ref={headerRef}>
                     <div className="pt-16 md:pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">

@@ -5,6 +5,17 @@ import { NavBar } from './Globals';
 import { HiLogout } from 'react-icons/hi';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import { useSnackbar } from './contexts/SnackbarContext';
+import { Button } from './components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogClose
+} from './components/ui/dialog';
 import './index.css';
 import usePageTitle from './hooks/usePageTitle';
 
@@ -101,17 +112,10 @@ const Profile = () => {
             .replace(/\-\-+/g, '-')
             .replace(/^-+/, '')
             .replace(/-+$/, '');
+
     };
 
-    const handleDeleteZine = async (zineId, e) => {
-        // Stop navigation since the button is inside a Link
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!confirm("Are you sure you want to delete this zine? This cannot be undone.")) {
-            return;
-        }
-
+    const handleDeleteZine = async (zineId) => {
         try {
             const token = await currentUser.getIdToken();
             const response = await fetch(`/api/zines/${zineId}`, {
@@ -208,39 +212,64 @@ const Profile = () => {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
                             {zines.map((zine) => (
-                                <Link
+                                <div
                                     key={zine._id}
-                                    to={`/zine/${zine._id}/${slugify(zine.title)}`}
-                                    className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                                    className="group relative flex flex-col bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                                 >
-                                    <div className="aspect-square w-full overflow-hidden bg-gray-200 relative">
-                                        {zine.pages && zine.pages[0] ? (
-                                            <img
-                                                src={zine.pages[0]}
-                                                alt={`Cover of ${zine.title}`}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-400">No Cover</div>
-                                        )}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                            <span className="text-white font-bold">Read Now</span>
+                                    <Link
+                                        to={`/zine/${zine._id}/${slugify(zine.title)}`}
+                                        className="flex-grow flex flex-col"
+                                    >
+                                        <div className="aspect-square w-full overflow-hidden bg-gray-200 relative">
+                                            {zine.pages && zine.pages[0] ? (
+                                                <img
+                                                    src={zine.pages[0]}
+                                                    alt={`Cover of ${zine.title}`}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-400">No Cover</div>
+                                            )}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                                                <span className="text-white font-bold">Read Now</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="p-4">
-                                        <h3 className="font-bold text-lg text-sl-title truncate">{zine.title}</h3>
-                                        <p className="text-sm text-gray-500 truncate">by {zine.author}</p>
-                                    </div>
+                                        <div className="p-4">
+                                            <h3 className="font-bold text-lg text-sl-title truncate">{zine.title}</h3>
+                                            <p className="text-sm text-gray-500 truncate">by {zine.author}</p>
+                                        </div>
+                                    </Link>
                                     {isOwner && (
-                                        <button
-                                            onClick={(e) => handleDeleteZine(zine._id, e)}
-                                            className="absolute top-2 right-2 p-2 bg-white/90 text-red-500 rounded-full hover:bg-red-100 transition-opacity opacity-0 group-hover:opacity-100 z-10 shadow-sm"
-                                            title="Delete Zine"
-                                        >
-                                            <FaRegTrashAlt size={16} />
-                                        </button>
+                                        <div className="absolute top-2 right-2 z-20">
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="rounded-full bg-white/90 hover:bg-red-100 text-red-500 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm"
+                                                        onClick={(e) => { e.stopPropagation(); }}
+                                                    >
+                                                        <FaRegTrashAlt size={16} />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent onClick={(e) => e.stopPropagation()}>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Delete Zine</DialogTitle>
+                                                        <DialogDescription>
+                                                            Are you sure you want to delete "{zine.title}"? This action cannot be undone.
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <DialogFooter>
+                                                        <DialogClose asChild>
+                                                            <Button variant="outline">Cancel</Button>
+                                                        </DialogClose>
+                                                        <Button variant="destructive" onClick={() => handleDeleteZine(zine._id)}>Delete</Button>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
+                                        </div>
                                     )}
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     )}
