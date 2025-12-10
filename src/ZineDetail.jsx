@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useSnackbar } from './contexts/SnackbarContext';
 import { auth } from './firebase';
-import { FaVolumeUp, FaVolumeMute, FaBookmark, FaRegBookmark, FaRegTrashAlt } from 'react-icons/fa';
+import { Volume2, VolumeX, Bookmark, Trash2 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import {
     Dialog,
@@ -243,7 +243,7 @@ const ZineDetail = () => {
                     className="absolute top-4 right-4 md:top-10 md:right-0 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
                     title={isSoundEnabled ? "Mute sound" : "Unmute sound"}
                 >
-                    {isSoundEnabled ? <FaVolumeUp size={20} /> : <FaVolumeMute size={20} />}
+                    {isSoundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
                 </button>
 
                 {/* Bookmark Button */}
@@ -252,7 +252,7 @@ const ZineDetail = () => {
                     className="absolute top-4 left-4 md:top-10 md:left-0 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
                     title={isBookmarked ? "Remove bookmark" : "Bookmark this zine"}
                 >
-                    {isBookmarked ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
+                    <Bookmark size={24} fill={isBookmarked ? "currentColor" : "none"} />
                 </button>
 
                 {isOwner && (
@@ -264,7 +264,7 @@ const ZineDetail = () => {
                                 className="absolute top-4 left-14 md:top-10 md:left-12 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
                                 title="Delete Zine"
                             >
-                                <FaRegTrashAlt size={20} />
+                                <Trash2 size={24} />
                             </Button>
                         </DialogTrigger>
                         <DialogContent>

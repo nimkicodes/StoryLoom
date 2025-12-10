@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { NavBar } from './Globals';
-import { HiLogout } from 'react-icons/hi';
-import { FaRegTrashAlt } from 'react-icons/fa';
+import { LogOut, Trash2 } from 'lucide-react';
 import { useSnackbar } from './contexts/SnackbarContext';
 import { Button } from './components/ui/button';
 import {
@@ -189,7 +188,7 @@ const Profile = () => {
                                     onClick={handleLogout}
                                     className="flex items-center gap-2 px-6 py-2 border border-sl-orange text-sl-orange rounded-lg hover:bg-sl-orange hover:text-white transition-colors font-medium md:absolute md:top-8 md:right-8 w-full md:w-auto justify-center"
                                 >
-                                    <HiLogout className="text-xl" />
+                                    <LogOut className="text-xl" />
                                     <span>Sign Out</span>
                                 </button>
                             )}
@@ -249,7 +248,7 @@ const Profile = () => {
                                                         className="rounded-full bg-white/90 hover:bg-red-100 text-red-500 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm"
                                                         onClick={(e) => { e.stopPropagation(); }}
                                                     >
-                                                        <FaRegTrashAlt size={16} />
+                                                        <Trash2 size={16} />
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent onClick={(e) => e.stopPropagation()}>
