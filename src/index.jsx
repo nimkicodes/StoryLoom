@@ -11,30 +11,40 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import ReactDOM from 'react-dom/client';
 import React from 'react';
 import { AuthProvider } from './contexts/AuthContext';
-
+import { SnackbarProvider } from './contexts/SnackbarContext';
+import Snackbar from './components/ui/Snackbar';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import PrivateRoute from './PrivateRoute';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <BrowserRouter>
+    <React.StrictMode>
         <AuthProvider>
-            <Routes>
-                <Route exact path="/" element={<Home />} />
-                <Route exact path="/browse" element={<Browse />} />
-                <Route element={<PrivateRoute />}>
-                    <Route exact path="/create" element={<Create />} />
-                    <Route exact path="/profile" element={<Profile />} />
-                </Route>
-                <Route exact path="/profile/:userId" element={<Profile />} />
-                <Route exact path="/reader" element={<Reader />} />
-                <Route exact path="/login" element={<Login />} />
-                <Route exact path="/signup" element={<Signup />} />
-                <Route path="/zine/:id" element={<ZineDetail />} />
-                <Route path="/zine/:id/:slug" element={<ZineDetail />} />
-                <Route path="*" element={<Error />} />
-            </Routes>
+            <SnackbarProvider>
+                <DndProvider backend={HTML5Backend}>
+                    <BrowserRouter>
+                        <Routes>
+                            <Route exact path="/" element={<Home />} />
+                            <Route exact path="/browse" element={<Browse />} />
+                            <Route element={<PrivateRoute />}>
+                                <Route exact path="/create" element={<Create />} />
+                                <Route exact path="/profile" element={<Profile />} />
+                            </Route>
+                            <Route exact path="/profile/:userId" element={<Profile />} />
+                            <Route exact path="/reader" element={<Reader />} />
+                            <Route exact path="/login" element={<Login />} />
+                            <Route exact path="/signup" element={<Signup />} />
+                            <Route path="/zine/:id" element={<ZineDetail />} />
+                            <Route path="/zine/:id/:slug" element={<ZineDetail />} />
+                            <Route path="*" element={<Error />} />
+                        </Routes>
+                        <Snackbar />
+                    </BrowserRouter>
+                </DndProvider>
+            </SnackbarProvider>
         </AuthProvider>
-    </BrowserRouter>
+    </React.StrictMode>
 );
 
 if ('serviceWorker' in navigator) {

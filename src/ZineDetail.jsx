@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { useSnackbar } from './contexts/SnackbarContext';
 import { auth } from './firebase';
 import { FaVolumeUp, FaVolumeMute, FaBookmark, FaRegBookmark, FaRegTrashAlt } from 'react-icons/fa';
 import HTMLFlipBook from "react-pageflip";
@@ -108,49 +109,33 @@ const ZineDetail = () => {
         }
     };
 
+    const { showSnackbar } = useSnackbar();
+
     const handleDelete = async () => {
-        let shouldDelete = confirm("WARNING: This action is irreversible. Do you want to delete this zine?");
-        if (!shouldDelete) { return; }
-        let userId = zine.userId;
-        if (!userId) { return; }
+        if (!confirm("WARNING: This action is irreversible. Do you want to delete this zine?")) {
+            return;
+        }
 
-        const formData = new FormData();
-        formData.append('userId', userId);
-
-        const deleteZine = async () => {
-            try {
-                const token = await auth.currentUser?.getIdToken();
-                const xhr = new XMLHttpRequest();
-
-                xhr.addEventListener('load', () => {
-                    if (xhr.status == 200) {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response == null) {
-                            // TODO: redirect
-                        }
-                    } else {
-                        alert('Deletion failed. The server responded with an error.');
-                        console.log(response);
-                    }
-                });
-
-                xhr.addEventListener('error', () => {
-                    alert('Deletion failed. Please check your network connection.');
-                });
-
-                xhr.open('DELETE', `/api/zines/${id}`);
-                if (token) {
-                    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const response = await fetch(`/api/zines/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
+            });
 
-                xhr.send(formData);
-            } catch (error) {
-                console.error("Error getting token:", error);
-                alert("Authentication error. Please try logging in again.");
+            if (response.ok) {
+                showSnackbar('Zine deleted successfully', 'success');
+                // Redirect to user profile
+                navigate(`/profile`);
+            } else {
+                showSnackbar('Deletion failed. The server responded with an error.', 'error');
             }
-        };
-
-        deleteZine();
+        } catch (error) {
+            console.error("Error deleting zine:", error);
+            showSnackbar('Deletion failed. Please check your network connection.', 'error');
+        }
     };
 
     const [dimensions, setDimensions] = useState({ width: 550, height: 650 });
@@ -269,7 +254,7 @@ const ZineDetail = () => {
                         className="absolute top-4 left-4 md:top-10 md:left-6 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
                         title="Delete this zine"
                     >
-                    <FaRegTrashAlt size={20} />
+                        <FaRegTrashAlt size={20} />
                     </button>
                 }
 

@@ -203,31 +203,85 @@ export const deleteZineById = async (req, res) => {
   try {
     const db = getDB();
     const { id } = req.params;
+    const userId = req.user.uid;
 
-    const zine_doc = db.collection('zines').doc(id);
-    let data = (await zine_doc.get()).data();
-    let userId = data.userId;
-    zine_doc.delete().then(() => {
-      console.log("[Controller] Zine successfully deleted.");
-    }).catch((error) => {
-      console.error("[Controller] Error removing zine: ", error);
-    });
+    const zineRef = db.collection('zines').doc(id);
+    const zineDoc = await zineRef.get();
 
-    let user_doc = db.collection('users').doc(userId);
-    let created_zines = (await user_doc.get()).data().createdZines;
+    if (!zineDoc.exists) {
+      return res.status(404).send('Zine not found.');
+    }
 
-    // not optimal but necessary as we need the value to remove a zine from a
-    // user's createdZines array. Changing the createdZines array to map with
-    // zineId as the key would solve this issue.
-    created_zines.forEach((x, i) => {
-      if (x.zineId == id) {
-        user_doc.update({
-          createdZines: admin.firestore.FieldValue.arrayRemove(x)
+    const zineData = zineDoc.data();
+
+    // ownership check
+    if (zineData.userId !== userId) {
+      return res.status(403).send('Unauthorized to delete this zine.');
+    }
+
+    // 1. Delete the zine document
+    await zineRef.delete();
+    console.log("[Controller] Zine document successfully deleted.");
+
+    // 2. Remove from creator's createdZines array
+    // Note: zineData.userId should be same as userId here
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
+
+    if (userDoc.exists) {
+      const userData = userDoc.data();
+      const createdZines = userData.createdZines || [];
+      const zineToRemove = createdZines.find(z => z.zineId === id);
+
+      if (zineToRemove) {
+        await userRef.update({
+          createdZines: admin.firestore.FieldValue.arrayRemove(zineToRemove)
         });
+        console.log("[Controller] Removed zine from creator's list.");
+      }
+    }
+
+    // 3. Remove from ALL users' bookmarks
+    // Optimization: In a real large-scale app, we'd use a Cloud Function or a proper relation table.
+    // For now, we scan users. To optimize slightly, we could query only users who have 'bookmarkedZines' field
+    // but Firestore map queries are tricky. We'll iterate.
+    const usersSnapshot = await db.collection('users').get();
+    console.log(`[Controller] Scanning ${usersSnapshot.size} users to remove bookmarks...`);
+
+    const batch = db.batch();
+    let batchCount = 0;
+
+    usersSnapshot.forEach(doc => {
+      const userData = doc.data();
+      if (userData.bookmarkedZines) {
+        // Check legacy array or new map
+        if (Array.isArray(userData.bookmarkedZines)) {
+          // Legacy array handling
+          const updatedBookmarks = userData.bookmarkedZines.filter(b => b.zineId !== id);
+          if (updatedBookmarks.length !== userData.bookmarkedZines.length) {
+            const docRef = db.collection('users').doc(doc.id);
+            batch.update(docRef, { bookmarkedZines: updatedBookmarks });
+            batchCount++;
+          }
+        } else {
+          // New Map handling
+          if (userData.bookmarkedZines[id]) {
+            const docRef = db.collection('users').doc(doc.id);
+            batch.update(docRef, {
+              [`bookmarkedZines.${id}`]: admin.firestore.FieldValue.delete()
+            });
+            batchCount++;
+          }
+        }
       }
     });
 
-    res.status(200).json(null);
+    if (batchCount > 0) {
+      await batch.commit();
+      console.log(`[Controller] Removed bookmarks from ${batchCount} users.`);
+    }
+
+    res.status(200).json({ message: 'Zine deleted and bookmarks cleaned up.' });
   } catch (error) {
     console.error('[Controller] Error deleting zine by ID:', error);
     res.status(500).send('Failed to delete zine.');

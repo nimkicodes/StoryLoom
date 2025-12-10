@@ -3,6 +3,8 @@ import { useAuth } from './contexts/AuthContext';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { NavBar } from './Globals';
 import { HiLogout } from 'react-icons/hi';
+import { FaRegTrashAlt } from 'react-icons/fa';
+import { useSnackbar } from './contexts/SnackbarContext';
 import './index.css';
 import usePageTitle from './hooks/usePageTitle';
 
@@ -10,6 +12,7 @@ const Profile = () => {
     usePageTitle('Profile');
     const { currentUser, logout } = useAuth();
     const { userId } = useParams(); // Get user ID from URL if present
+    const { showSnackbar } = useSnackbar();
     const [error, setError] = useState('');
     const [zines, setZines] = useState([]);
     const [bookmarks, setBookmarks] = useState([]);
@@ -98,6 +101,39 @@ const Profile = () => {
             .replace(/\-\-+/g, '-')
             .replace(/^-+/, '')
             .replace(/-+$/, '');
+    };
+
+    const handleDeleteZine = async (zineId, e) => {
+        // Stop navigation since the button is inside a Link
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!confirm("Are you sure you want to delete this zine? This cannot be undone.")) {
+            return;
+        }
+
+        try {
+            const token = await currentUser.getIdToken();
+            const response = await fetch(`/api/zines/${zineId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                // Remove from state immediately
+                setZines(prevZines => prevZines.filter(z => z._id !== zineId));
+                setBookmarks(prev => prev.filter(b => b._id !== zineId));
+                showSnackbar('Zine deleted successfully', 'success');
+            } else {
+                const errText = await response.text();
+                showSnackbar(`Failed to delete zine: ${errText}`, 'error');
+            }
+        } catch (err) {
+            console.error("Error deleting zine:", err);
+            showSnackbar('Error deleting zine', 'error');
+        }
     };
 
 
@@ -195,6 +231,15 @@ const Profile = () => {
                                         <h3 className="font-bold text-lg text-sl-title truncate">{zine.title}</h3>
                                         <p className="text-sm text-gray-500 truncate">by {zine.author}</p>
                                     </div>
+                                    {isOwner && (
+                                        <button
+                                            onClick={(e) => handleDeleteZine(zine._id, e)}
+                                            className="absolute top-2 right-2 p-2 bg-white/90 text-red-500 rounded-full hover:bg-red-100 transition-opacity opacity-0 group-hover:opacity-100 z-10 shadow-sm"
+                                            title="Delete Zine"
+                                        >
+                                            <FaRegTrashAlt size={16} />
+                                        </button>
+                                    )}
                                 </Link>
                             ))}
                         </div>

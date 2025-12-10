@@ -16,6 +16,6 @@ router.post('/upload', verifyToken, upload.array('images', 20), processAndUpload
 router.get('/', getAllZines);
 router.get('/tags', getAllTags);
 router.get('/:id', getZineById);
-router.delete('/:id', deleteZineById);
+router.delete('/:id', verifyToken, deleteZineById);
 
 export default router;
