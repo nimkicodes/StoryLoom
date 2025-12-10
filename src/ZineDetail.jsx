@@ -258,14 +258,12 @@ const ZineDetail = () => {
                 {isOwner && (
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
+                            <button
                                 className="absolute top-4 left-14 md:top-10 md:left-12 p-2 text-sl-title hover:text-sl-orange transition-colors z-40"
                                 title="Delete Zine"
                             >
                                 <Trash2 size={24} />
-                            </Button>
+                            </button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
@@ -285,7 +283,7 @@ const ZineDetail = () => {
                 )}
 
                 <div ref={headerRef}>
-                    <div className="pt-16 md:pt-5 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">
+                    <div className="pt-16 md:pt-12 pb-2 flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-4">
                         <h1 className="font-serif font-bold text-sl-title text-2xl md:text-4xl">{zine.title}</h1>
                         {zine.userId ? (
                             <Link to={`/profile/${zine.userId}`} className="text-xs md:text-base text-sl-orange font-bold hover:underline transition-colors">
@@ -295,7 +293,7 @@ const ZineDetail = () => {
                             <span className="text-xs md:text-base text-gray-600">by {zine.author}</span>
                         )}
                     </div>
-                    <hr className="border-sl-text"></hr>
+                    <hr className="border-sl-text mt-4"></hr>
 
                     {/* Tags */}
                     {/* Tags */}
