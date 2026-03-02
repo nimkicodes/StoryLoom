@@ -9,9 +9,9 @@ export const connectDB = async () => {
   try {
     // Check if service-account.json exists
     try {
-      const serviceAccount = JSON.parse(
-        await readFile(new URL('./service-account.json', import.meta.url))
-      );
+      // const serviceAccount = JSON.parse(
+      //   await readFile(new URL('./service-account.json', import.meta.url))
+      const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_JSON);
 
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
@@ -33,7 +33,7 @@ export const connectDB = async () => {
     return db;
   } catch (err) {
     console.error('Firebase connection error:', err);
-    process.exit(1);
+    throw err;
   }
 };
 

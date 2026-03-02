@@ -16,3 +16,5 @@ dist/
 .idea
 
 service-account.json
+.vercel
+.env*.local
