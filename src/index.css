@@ -6,3 +6,12 @@
     --color-sl-orange: #d17a4a;
     --color-sl-text: #9b876b;
 }
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Enable momentum scrolling on iOS for all scrollable elements */
+.overflow-y-auto, .overflow-x-auto, .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+}
